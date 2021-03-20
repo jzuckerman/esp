@@ -34,6 +34,7 @@ tkparse
 esp_global.vhd
 socmap.vhd
 socmap.h
+esplink.h
 mmi64_regs.h
 power.h
 cache_cfg.svh

@@ -31,6 +31,9 @@
 
 #include <esp.h>
 
+#define LOCS
+#include "socmap.h"
+
 #define PFX "esp: "
 #define ESP_MAX_DEVICES	64
 
@@ -58,7 +61,7 @@ static size_t cache_l2_size = 32768;
 static size_t cache_llc_bank_size = 262144;
 static size_t cache_llc_size = 262144;
 
-struct esp_status esp_status;
+void *monitor_base_ptr = NULL;
 
 static irqreturn_t esp_irq(int irq, void *dev)
 {
@@ -118,96 +121,6 @@ static int esp_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-void esp_status_init(void) {
-
-	int i;
-
-	cache_l2_size = cache_l2_sets * cache_l2_ways * cache_line_bytes;
-	
-    if (rtl_cache) {
-        cache_llc_size = cache_llc_sets * cache_llc_ways * cache_line_bytes;
-        cache_llc_bank_size = cache_llc_sets * cache_llc_ways * cache_line_bytes / cache_llc_banks;
-    } else {
-        cache_llc_size = cache_llc_sets * cache_llc_ways * cache_line_bytes * cache_llc_banks;
-        cache_llc_bank_size = cache_llc_sets * cache_llc_ways * cache_line_bytes;
-    }
-
-	mutex_init(&esp_status.lock);
-	esp_status.active_acc_cnt = 0;
-	esp_status.active_footprint = 0;
-	for (i = 0; i < cache_llc_banks; i++)
-		esp_status.active_footprint_split[i] = 0;
-}
-
-static void esp_runtime_config(struct esp_device *esp)
-{
-	unsigned int footprint, footprint_llc_threshold;
-	// Update number of active accelerators
-	esp_status.active_acc_cnt += 1;
-
-	if (esp->coherence == ACC_COH_FULL) {
-
-		esp_status.active_acc_cnt_full++;
-
-		return;
-	}
-
-    if  (esp->coherence == ACC_COH_AUTO){
-
-        // Evaluate footprint
-        if (esp->alloc_policy == CONTIG_ALLOC_PREFERRED ||
-            esp->alloc_policy == CONTIG_ALLOC_LEAST_LOADED) {
-
-            footprint = esp_status.active_footprint_split[esp->ddr_node]
-                + esp->footprint;
-            footprint_llc_threshold = cache_llc_bank_size;
-
-        } else { // CONTIG_ALLOC_BALANCED
-
-            footprint = esp_status.active_footprint + esp->footprint;;
-            footprint_llc_threshold = cache_llc_size;
-        }
-
-        // Cache coherence choice
-        if (esp->footprint < cache_l2_size) {
-            if (esp->reuse_factor > 1){
-                esp->coherence =  ACC_COH_FULL;
-                esp_status.active_acc_cnt_full++;
-            } else {
-                esp->coherence = ACC_COH_RECALL;
-            }
-        } else if (esp->footprint < cache_llc_bank_size) {
-            esp->coherence = ACC_COH_RECALL;
-
-        } else {
-            esp->coherence = ACC_COH_NONE;
-        }
-    }
-
-	// Update footprint
-	if (esp->coherence != ACC_COH_NONE) {
-
-		esp_status.active_footprint += esp->footprint;
-
-		if (esp->alloc_policy == CONTIG_ALLOC_PREFERRED ||
-			esp->alloc_policy == CONTIG_ALLOC_LEAST_LOADED) {
-
-			esp_status.active_footprint_split[esp->ddr_node] +=
-				esp->footprint;
-
-		} else { // CONTIG_ALLOC_BALANCED
-
-			int i;
-			for (i = 0; i < cache_llc_banks; i++) {
-				esp_status.active_footprint_split[i] +=
-					(esp->footprint / cache_llc_banks);
-			}
-		}
-	}
-
-	return;
-}
-
 static void esp_transfer(struct esp_device *esp, const struct contig_desc *contig)
 {
 	esp->err = 0;
@@ -240,34 +153,6 @@ static int esp_wait(struct esp_device *esp)
 	}
 
 	return 0;
-}
-
-static void esp_update_status(struct esp_device *esp)
-{
-	if (esp->coherence == ACC_COH_FULL)
-		esp_status.active_acc_cnt_full--;
-
-	// Update number of active accelerators
-	esp_status.active_acc_cnt -= 1;
-
-	// Update footprints
-	if (esp->coherence != ACC_COH_NONE) {
-
-		esp_status.active_footprint -= esp->footprint;
-
-		if (esp->alloc_policy == CONTIG_ALLOC_PREFERRED ||
-			esp->alloc_policy == CONTIG_ALLOC_LEAST_LOADED) {
-
-			esp_status.active_footprint_split[esp->ddr_node] -= esp->footprint;
-
-		} else {
-
-			int i;
-			for (i = 0; i < cache_llc_banks; i++) {
-				esp_status.active_footprint_split[i] -= (esp->footprint / cache_llc_banks);
-			}
-		}
-	}
 }
 
 static bool esp_xfer_input_ok(struct esp_device *esp, const struct contig_desc *contig)
@@ -340,6 +225,56 @@ static long esp_p2p_init(struct esp_device *esp, struct esp_access *access)
 	return 0;
 }
 
+static void read_ddr_accesses(unsigned int *ddr_accesses){ 
+    soc_loc_t loc;
+    unsigned int tile_no, offset;
+    unsigned int *mem_addr;
+    void __iomem *iomem;
+    int m;
+    for (m = 0; m < SOC_NDDR_CONTIG; m++){
+        loc = contig_alloc_locs[m];
+        tile_no = loc.row * SOC_COLS + loc.col;
+        offset = tile_no * (0x200 / sizeof(unsigned int)); 
+        mem_addr = ((unsigned int*) monitor_base_ptr) + offset + 4;
+        iomem = (void *) mem_addr;
+        ddr_accesses[m] = ioread32be(iomem);
+    }
+}
+
+#ifdef ACCS_PRESENT
+static long read_acc_stats(struct esp_access *access){
+    soc_loc_t loc;
+    int tile_no, offset;
+    unsigned int *acc_base_addr;
+    void __iomem *iomem; 
+
+    if (access->devid >= SOC_NACC)
+        return false;
+
+    loc = acc_locs[access->devid];
+    
+    tile_no = loc.row * SOC_COLS + loc.col;
+    
+    //0x200 is the size of the address space, divide by 4 for correct pointer arithmetic
+    offset = tile_no * (0x200 / sizeof(unsigned int));
+    
+    //this gives the base address of the accelerator tile monitors, accelerator monitors are offset from this
+    acc_base_addr = ((unsigned int *) monitor_base_ptr) + offset;
+    
+    iomem = (void *) (acc_base_addr + 17);
+    access->acc_stats.acc_tlb = ioread32be(iomem);
+    iomem = (void *) (acc_base_addr + 18);
+    access->acc_stats.acc_mem_lo = ioread32be(iomem);
+    iomem = (void *) (acc_base_addr + 19);
+    access->acc_stats.acc_mem_hi = ioread32be(iomem);
+    iomem = (void *) (acc_base_addr + 20);
+    access->acc_stats.acc_tot_lo = ioread32be(iomem);
+    iomem = (void *) (acc_base_addr + 21);
+    access->acc_stats.acc_tot_hi = ioread32be(iomem);
+    return true;
+}
+#endif
+
 static int esp_access_ioctl(struct esp_device *esp, void __user *argp)
 {
 	struct contig_desc *contig;
@@ -394,16 +329,8 @@ static int esp_access_ioctl(struct esp_device *esp, void __user *argp)
 	esp->in_place = access->in_place;
 	esp->reuse_factor = access->reuse_factor;
 
-    if (mutex_lock_interruptible(&esp_status.lock)) {
-        rc = -EINTR;
-        goto out;
-    }
-
-    esp_runtime_config(esp);
-
-    mutex_unlock(&esp_status.lock);
-
-	rc = esp_flush(esp);
+	read_ddr_accesses(access->ddr_accesses_start);
+    rc = esp_flush(esp);
 	if (rc)
 		goto out;
 
@@ -415,18 +342,20 @@ static int esp_access_ioctl(struct esp_device *esp, void __user *argp)
 	if (access->run) {
 		esp_run(esp);
 		rc = esp_wait(esp);
+        read_ddr_accesses(access->ddr_accesses_end);
+
+#ifdef ACCS_PRESENT
+        if (!read_acc_stats(access)){
+            rc = -ENODEV;
+            goto out;
+        }
+#endif
 	}
-
-    if (mutex_lock_interruptible(&esp_status.lock)) {
+    if (copy_to_user(argp, (void *) access, sizeof(struct esp_access))) {
         rc = -EINTR;
-        goto out;
     }
-
-    esp_update_status(esp);
-
-    mutex_unlock(&esp_status.lock);
-
-	mutex_unlock(&esp->lock);
+	
+    mutex_unlock(&esp->lock);
 
 out:
 	kfree(arg);
@@ -465,7 +394,6 @@ out:
 static long esp_do_ioctl(struct file *file, unsigned int cm, void __user *arg)
 {
 	struct esp_device *esp = file->private_data;
-
 	switch (cm) {
 	case ESP_IOC_RUN:
 		return esp_run_ioctl(esp);
@@ -662,12 +590,24 @@ EXPORT_SYMBOL_GPL(esp_driver_unregister);
 
 static int __init esp_init(void)
 {
-        esp_status_init();
+    cache_l2_size = cache_l2_sets * cache_l2_ways * cache_line_bytes;
+    
+    if (rtl_cache) {
+        cache_llc_size = cache_llc_sets * cache_llc_ways * cache_line_bytes;
+        cache_llc_bank_size = cache_llc_sets * cache_llc_ways * cache_line_bytes / cache_llc_banks;
+    } else {
+        cache_llc_size = cache_llc_sets * cache_llc_ways * cache_line_bytes * cache_llc_banks;
+        cache_llc_bank_size = cache_llc_sets * cache_llc_ways * cache_line_bytes;
+    }
+
+    monitor_base_ptr = ioremap(0x80090000, 0x200 * SOC_COLS * SOC_ROWS);
 	return 0;
 }
 
 static void __exit esp_exit(void)
-{ }
+{ 
+    iounmap(monitor_base_ptr);
+}
 
 module_init(esp_init)
 	module_exit(esp_exit)

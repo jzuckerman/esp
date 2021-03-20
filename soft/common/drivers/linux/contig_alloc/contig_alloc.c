@@ -297,7 +297,10 @@ static struct contig_desc *__contig_alloc_chunks(const struct contig_alloc_param
 	case CONTIG_ALLOC_BALANCED:
 		rc = contig_alloc_balanced(desc, params);
 		break;
-	default:
+    case CONTIG_ALLOC_LEAST_UTILIZED:
+        rc = contig_alloc_preferred(desc, params);
+        break;
+    default:
 		BUG();
 	}
 
@@ -492,7 +495,11 @@ static bool contig_alloc_ok(const struct contig_alloc_params *params)
 		if (params->pol.first.ddr_node < 0 || params->pol.first.ddr_node > nddr)
 			return false;
 		break;
-	case CONTIG_ALLOC_LEAST_LOADED:
+	case CONTIG_ALLOC_LEAST_UTILIZED:
+		if (params->pol.first.ddr_node < 0 || params->pol.first.ddr_node > nddr)
+			return false;
+		break;
+    case CONTIG_ALLOC_LEAST_LOADED:
 		if (params->pol.lloaded.threshold < 0 || params->pol.lloaded.threshold > mem_size[0] / chunk_size)
 			return false;
 		break;

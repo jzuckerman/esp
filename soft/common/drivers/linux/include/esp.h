@@ -17,12 +17,24 @@
 #include <stdint.h>
 #endif /* __KERNEL__ */
 
+#define N_MEM 8
+
+typedef struct acc_stats{
+    unsigned int acc_tlb;
+    unsigned int acc_mem_lo;
+    unsigned int acc_mem_hi;
+    unsigned int acc_tot_lo;
+    unsigned int acc_tot_hi;
+} acc_stats_t;
+
 /* embed this struct at the beginning of the access struct */
 struct esp_access {
 	contig_khandle_t contig;
-	uint8_t run;
+	uint8_t devid;
+    uint8_t run;
 	uint8_t p2p_store;
 	uint8_t p2p_nsrcs;
+    uint8_t learn;
 	char p2p_srcs[4][64];
 	enum accelerator_coherence coherence;
         unsigned int footprint;
@@ -30,6 +42,9 @@ struct esp_access {
         unsigned int ddr_node;
 	unsigned int in_place;
 	unsigned int reuse_factor;
+    unsigned int ddr_accesses_start[N_MEM];
+    unsigned int ddr_accesses_end[N_MEM];
+    acc_stats_t acc_stats;
 };
 
 #define ESP_IOC_RUN _IO('E', 0)
@@ -85,14 +100,6 @@ struct esp_device {
         unsigned int ddr_node;
 	unsigned int in_place;
 	unsigned int reuse_factor;
-};
-
-struct esp_status {
-	struct mutex lock;
-	unsigned int active_acc_cnt;
-	unsigned int active_acc_cnt_full; 
-	unsigned int active_footprint;
-	unsigned int active_footprint_split[N_MEM]; // 2 mem ctrl
 };
 
 int esp_driver_register(struct esp_driver *driver);

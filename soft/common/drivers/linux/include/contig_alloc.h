@@ -41,6 +41,9 @@ enum contig_alloc_policy {
 	CONTIG_ALLOC_PREFERRED,
 	CONTIG_ALLOC_LEAST_LOADED,
 	CONTIG_ALLOC_BALANCED,
+    CONTIG_ALLOC_FIRST,
+    CONTIG_ALLOC_LEAST_UTILIZED,
+    CONTIG_ALLOC_AUTO,
 };
 
 /**
@@ -56,6 +59,7 @@ struct contig_alloc_preferred {
  * @threshold: DDR0 penalty
  */
 struct contig_alloc_least_loaded {
+        int ddr_node;
         unsigned int threshold;
 };
 
@@ -65,6 +69,7 @@ struct contig_alloc_least_loaded {
  * @cluster_size: number of chunks in the clusters
  */
 struct contig_alloc_balanced {
+        int ddr_node;
         unsigned int threshold;
         unsigned int cluster_size;
 };

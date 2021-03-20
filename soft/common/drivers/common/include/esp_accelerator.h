@@ -51,7 +51,7 @@
 
 /* bank(9)        : Type of coherence (None, LLC, Full) - Read only */
 #define COHERENCE_REG 0x24
-enum accelerator_coherence {ACC_COH_NONE = 0, ACC_COH_LLC, ACC_COH_RECALL, ACC_COH_FULL, ACC_COH_AUTO};
+enum accelerator_coherence {ACC_COH_NONE = 0, ACC_COH_LLC, ACC_COH_RECALL, ACC_COH_FULL, ACC_COH_AUTO, ACC_COH_LEARN};
 
 /* bank(10)       : Point-to-point configuration */
 #define P2P_REG 0x28

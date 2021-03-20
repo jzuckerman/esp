@@ -10,7 +10,7 @@
 
 #include <esp_probe.h>
 
-#include "socmap.h"
+#include "esplink.h"
 
 #ifdef __riscv
 
