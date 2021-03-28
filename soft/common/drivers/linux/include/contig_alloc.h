@@ -59,7 +59,6 @@ struct contig_alloc_preferred {
  * @threshold: DDR0 penalty
  */
 struct contig_alloc_least_loaded {
-        int ddr_node;
         unsigned int threshold;
 };
 
@@ -69,11 +68,15 @@ struct contig_alloc_least_loaded {
  * @cluster_size: number of chunks in the clusters
  */
 struct contig_alloc_balanced {
-        int ddr_node;
         unsigned int threshold;
         unsigned int cluster_size;
 };
 
+struct contig_alloc_auto {
+        int ddr_node;
+        unsigned int threshold;
+        unsigned int cluster_size;
+};
 /**
  * struct contig_alloc_params - policy and parameters for contig_alloc
  * @policy: policy to be used for allocation
@@ -85,6 +88,7 @@ struct contig_alloc_params {
                 struct contig_alloc_preferred first;
                 struct contig_alloc_least_loaded lloaded;
                 struct contig_alloc_balanced balanced;
+                struct contig_alloc_auto automatic;
         } pol;
 };
 

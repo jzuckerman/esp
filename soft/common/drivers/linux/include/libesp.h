@@ -94,14 +94,13 @@ struct p2p_thread_args {
 };
 
 void esp_init(void);
+void esp_cleanup(void);
+void *esp_alloc_policy_accs(struct contig_alloc_params *params, size_t size, int *accs, unsigned int nacc);
 void *esp_alloc_policy(struct contig_alloc_params *params, size_t size);
 void *esp_alloc(size_t size);
 void esp_run_parallel(esp_thread_info_t* cfg[], unsigned nthreads, unsigned* nacc, unsigned* loop_cnt);
 void esp_run(esp_thread_info_t cfg[], unsigned nacc);
 void esp_free(void *buf);
-void print_values(void);
 void set_learning_params(float new_epsilon, float new_alpha, float new_discount);
-void mmap_monitors(void);
-void munmap_monitors(void);
 void read_ddr_accesses(unsigned int *ddr_accesses);
 #endif /* __ESPLIB_H__ */

@@ -1,29 +1,27 @@
--- Copyright (c) 2011-2021 Columbia University, System Level Design Group
+-- Copyright (c) 2011-2019 Columbia University, System Level Design Group
 -- SPDX-License-Identifier: Apache-2.0
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_misc.all;
 
-use work.esp_global.all;
 use work.amba.all;
-use work.stdlib.all;
+use work.stdlib.all; 
 use work.devices.all;
 use work.sld_devices.all;
 use work.gencomp.all;
 use work.allclkgen.all;
-use work.monitor_pkg.all;
-use work.esp_csr_pkg.all;
+use work.sldcommon.all;
 use work.nocpackage.all;
 
 entity esp_tile_csr is
 
   generic (
-    pindex      : integer range 0 to NAPBSLV -1 := 0);
+    pindex      : integer range 0 to NAPBSLV -1;
+    pconfig     : apb_config_type );
   port (
     clk         : in std_logic;
     rstn        : in std_logic;
-    pconfig     : in apb_config_type;
     mon_ddr     : in monitor_ddr_type;
     mon_mem     : in monitor_mem_type;
     mon_noc     : in monitor_noc_vector(1 to 6);
@@ -31,8 +29,6 @@ entity esp_tile_csr is
     mon_llc     : in monitor_cache_type;
     mon_acc     : in monitor_acc_type;
     mon_dvfs    : in monitor_dvfs_type;
-    tile_config : out std_logic_vector(ESP_CSR_WIDTH - 1 downto 0);
-    srst        : out std_ulogic;
     apbi        : in apb_slv_in_type;
     apbo        : out apb_slv_out_type
   );
@@ -78,52 +74,19 @@ architecture rtl of esp_tile_csr is
     constant DEFAULT_WINDOW : std_logic_vector(REGISTER_WIDTH-1 downto 0) := conv_std_logic_vector(65536, REGISTER_WIDTH);
     
     signal window_size  : std_logic_vector(REGISTER_WIDTH-1 downto 0);
-    signal time_counter : std_logic_vector(REGISTER_WIDTH-1 downto 0);
-    signal window_reset : std_logic;
-    signal new_window   : std_logic;
-    signal updated      : std_logic;
     signal window_count : std_logic_vector(63 downto 0); 
     signal ctrl_rst     : std_logic_vector(REGISTER_WIDTH-1 downto 0);
     signal readdata     : std_logic_vector(REGISTER_WIDTH-1 downto 0);
     signal wdata        : std_logic_vector(REGISTER_WIDTH-1 downto 0);
     signal ctrl_rst_sample         : std_ulogic;
     signal ctrl_window_size_sample : std_ulogic;
-
+    signal acc_state               : std_ulogic;   
+    signal acc_state_next          : std_ulogic;   
+    signal acc_rst                 : std_ulogic;   
+    
     type counter_type is array (0 to MONITOR_REG_COUNT-1) of std_logic_vector(REGISTER_WIDTH-1 downto 0);
     signal count : counter_type;
     signal count_value : counter_type;
-
-    -- CSRs
-    signal config_r : std_logic_vector(ESP_CSR_WIDTH - 1 downto 0);
-
-    constant DEFAULT_CPU_LOC_OVR : std_logic_vector(CFG_NCPU_TILE * 2 * 3 downto 0) := (others => '0');
-    -- CPU_Y(N-1) CPU_X(N-1) .... CPU_Y(0) CPU_X(0)    OVERWRITE DEFAULT FROM SOCMAP
-
-    constant DEFAULT_ARIANE_HARTID : std_logic_vector(4 downto 0) :=
-      "0000"    & "0";
-    -- HART ID    OVERWRITE DEFAULT FROM SOCMAP
-
-    constant DEFAULT_MDC_SCALER_CFG : std_logic_vector(10 downto 0) := conv_std_logic_vector(490, 11);
-    -- Assume default I/O tile DCO frequency is 490MHz
-
-    constant DEFAULT_DCO_NOC_CFG : std_logic_vector(18 downto 0) :=
-       "00"     &  "001"   &  "000000" & "100101" & "0"     & "1";
-    -- FREQ_SEL    DIV_SEL    FC_SEL      CC_SEL    CLK_SEL   EN
-
-    constant DEFAULT_DCO_CFG : std_logic_vector(18 downto 0) :=
-       "00"     &  "001"   &  "000000" & "100101" & "0"     & "1";
-    -- FREQ_SEL    DIV_SEL    FC_SEL      CC_SEL    CLK_SEL   EN
-
-    constant DEFAULT_PAD_CFG : std_logic_vector(2 downto 0) :=
-      "0"       &  "11";
-    -- Slew rate   Drive strength
-
-    constant DEFAULT_TILE_ID : std_logic_vector(7 downto 0) := (others => '0');
-
-    constant DEFAULT_CONFIG : std_logic_vector(ESP_CSR_WIDTH - 1 downto 0) :=
-      DEFAULT_CPU_LOC_OVR & DEFAULT_ARIANE_HARTID & DEFAULT_MDC_SCALER_CFG & DEFAULT_DCO_NOC_CFG & DEFAULT_DCO_CFG & DEFAULT_PAD_CFG & DEFAULT_TILE_ID & "0";
-
-    signal csr_addr : integer range 0 to 31;
 
  begin
 
@@ -132,10 +95,7 @@ architecture rtl of esp_tile_csr is
   apbo.pindex   <= pindex;
   apbo.pconfig  <= pconfig;
 
-  tile_config <= config_r;
-  csr_addr <= conv_integer(apbi.paddr(6 downto 2));
-
-  rd_registers : process(apbi, count_value, ctrl_rst, window_size, window_count, config_r, csr_addr)
+  rd_registers : process(apbi, count_value, ctrl_rst, window_size, window_count) 
     --TODO 
     variable addr : integer range 0 to 127;
   begin 
@@ -153,41 +113,16 @@ architecture rtl of esp_tile_csr is
         ctrl_window_size_sample <= apbi.psel(pindex) and apbi.penable and apbi.pwrite;
     end if;
 
-    if apbi.paddr(8 downto 7) = "11" then
-      -- Config read access
-      case csr_addr is
-        when ESP_CSR_VALID_ADDR =>
-          readdata(ESP_CSR_VALID_MSB - ESP_CSR_VALID_LSB downto 0) <= config_r(ESP_CSR_VALID_MSB downto ESP_CSR_VALID_LSB);
-        when ESP_CSR_TILE_ID_ADDR =>
-          readdata(ESP_CSR_TILE_ID_MSB - ESP_CSR_TILE_ID_LSB downto 0) <= config_r(ESP_CSR_TILE_ID_MSB downto ESP_CSR_TILE_ID_LSB);
-        when ESP_CSR_PAD_CFG_ADDR =>
-          readdata(ESP_CSR_PAD_CFG_MSB - ESP_CSR_PAD_CFG_LSB downto 0) <= config_r(ESP_CSR_PAD_CFG_MSB downto ESP_CSR_PAD_CFG_LSB);
-        when ESP_CSR_DCO_CFG_ADDR =>
-          readdata(ESP_CSR_DCO_CFG_MSB - ESP_CSR_DCO_CFG_LSB downto 0) <= config_r(ESP_CSR_DCO_CFG_MSB downto ESP_CSR_DCO_CFG_LSB);
-        when ESP_CSR_DCO_NOC_CFG_ADDR =>
-          readdata(ESP_CSR_DCO_NOC_CFG_MSB - ESP_CSR_DCO_NOC_CFG_LSB downto 0) <= config_r(ESP_CSR_DCO_NOC_CFG_MSB downto ESP_CSR_DCO_NOC_CFG_LSB);
-        when ESP_CSR_MDC_SCALER_CFG_ADDR =>
-          readdata(ESP_CSR_MDC_SCALER_CFG_MSB - ESP_CSR_MDC_SCALER_CFG_LSB downto 0) <= config_r(ESP_CSR_MDC_SCALER_CFG_MSB downto ESP_CSR_MDC_SCALER_CFG_LSB);
-        when ESP_CSR_ARIANE_HARTID_ADDR =>
-          readdata(ESP_CSR_ARIANE_HARTID_MSB - ESP_CSR_ARIANE_HARTID_LSB downto 0) <= config_r(ESP_CSR_ARIANE_HARTID_MSB downto ESP_CSR_ARIANE_HARTID_LSB);
-        when ESP_CSR_CPU_LOC_OVR_ADDR =>
-          readdata(ESP_CSR_CPU_LOC_OVR_MSB - ESP_CSR_CPU_LOC_OVR_LSB downto 0) <= config_r(ESP_CSR_CPU_LOC_OVR_MSB downto ESP_CSR_CPU_LOC_OVR_LSB);
-        when others =>
-          readdata <= (others => '0');
-      end case;
-    else
-      -- Monitors read access
-      if addr = 0 then
-        readdata <= ctrl_rst;
-      elsif addr = 1 then
-        readdata <= window_size;
-      elsif addr = 2 then 
-        readdata <= window_count(REGISTER_WIDTH-1 downto 0);
-      elsif addr = 3 then
-        readdata <= window_count(2*REGISTER_WIDTH-1 downto REGISTER_WIDTH);
-      elsif addr < MONITOR_REG_COUNT + MONITOR_APB_OFFSET then 
-        readdata <= count_value(addr - MONITOR_APB_OFFSET);
-      end if;
+    if addr = 0 then
+      readdata <= ctrl_rst;
+    elsif addr = 1 then
+      readdata <= window_size;
+    elsif addr = 2 then 
+      readdata <= window_count(REGISTER_WIDTH-1 downto 0);
+    elsif addr = 3 then
+      readdata <= window_count(2*REGISTER_WIDTH-1 downto REGISTER_WIDTH);
+    elsif addr < MONITOR_REG_COUNT + MONITOR_APB_OFFSET then 
+      readdata <= count(addr - MONITOR_APB_OFFSET);
     end if;
   end process rd_registers;
   
@@ -196,92 +131,46 @@ architecture rtl of esp_tile_csr is
     if rstn =  '0' then
         ctrl_rst <= (others => '0');
         window_size <= DEFAULT_WINDOW;
-        window_reset <= '0';
-        config_r <= DEFAULT_CONFIG;
-        srst <= '0';
     elsif clk'event and clk = '1' then 
-        -- Monitors
-        window_reset <= '0';
         ctrl_rst <= (others => '0');
         if ctrl_rst_sample = '1' then
             ctrl_rst <= wdata;
         end if; 
         if ctrl_window_size_sample = '1' then 
             window_size  <= wdata;
-            window_reset <= '1';
-        end if;
-        -- Config write
-        if apbi.paddr(8 downto 7) = "11" and (apbi.psel(pindex) and apbi.penable and apbi.pwrite) = '1' then
-          case csr_addr is
-            when ESP_CSR_VALID_ADDR =>
-              config_r(ESP_CSR_VALID_MSB downto ESP_CSR_VALID_LSB) <= apbi.pwdata(ESP_CSR_VALID_MSB - ESP_CSR_VALID_LSB downto 0);
-            when ESP_CSR_TILE_ID_ADDR =>
-              config_r(ESP_CSR_TILE_ID_MSB downto ESP_CSR_TILE_ID_LSB) <= apbi.pwdata(ESP_CSR_TILE_ID_MSB - ESP_CSR_TILE_ID_LSB downto 0);
-            when ESP_CSR_PAD_CFG_ADDR =>
-              config_r(ESP_CSR_PAD_CFG_MSB downto ESP_CSR_PAD_CFG_LSB) <= apbi.pwdata(ESP_CSR_PAD_CFG_MSB - ESP_CSR_PAD_CFG_LSB downto 0);
-            when ESP_CSR_DCO_CFG_ADDR =>
-              config_r(ESP_CSR_DCO_CFG_MSB downto ESP_CSR_DCO_CFG_LSB) <= apbi.pwdata(ESP_CSR_DCO_CFG_MSB - ESP_CSR_DCO_CFG_LSB downto 0);
-            when ESP_CSR_DCO_NOC_CFG_ADDR =>
-              config_r(ESP_CSR_DCO_NOC_CFG_MSB downto ESP_CSR_DCO_NOC_CFG_LSB) <= apbi.pwdata(ESP_CSR_DCO_NOC_CFG_MSB - ESP_CSR_DCO_NOC_CFG_LSB downto 0);
-            when ESP_CSR_MDC_SCALER_CFG_ADDR =>
-              config_r(ESP_CSR_MDC_SCALER_CFG_MSB downto ESP_CSR_MDC_SCALER_CFG_LSB) <= apbi.pwdata(ESP_CSR_MDC_SCALER_CFG_MSB - ESP_CSR_MDC_SCALER_CFG_LSB downto 0);
-            when ESP_CSR_ARIANE_HARTID_ADDR =>
-              config_r(ESP_CSR_ARIANE_HARTID_MSB downto ESP_CSR_ARIANE_HARTID_LSB) <= apbi.pwdata(ESP_CSR_ARIANE_HARTID_MSB - ESP_CSR_ARIANE_HARTID_LSB downto 0);
-            when ESP_CSR_CPU_LOC_OVR_ADDR =>
-              config_r(ESP_CSR_CPU_LOC_OVR_MSB downto ESP_CSR_CPU_LOC_OVR_LSB) <= apbi.pwdata(ESP_CSR_CPU_LOC_OVR_MSB - ESP_CSR_CPU_LOC_OVR_LSB downto 0);
-            when ESP_CSR_SRST_ADDR =>
-              srst <= wdata(0);
-            when others => null;
-          end case;
         end if;
     end if;
   end process wr_registers;
-
-  time_stamp_update: process (clk, rstn)
-    variable new_window_setup : std_logic_vector(REGISTER_WIDTH-1 downto 0);
-  begin -- process time_stamp_update
-    if rstn = '0' then         -- asynchronous reset (active low)
-      new_window <= '0';
-      window_count <= (others => '0');
-      time_counter <= (others => '0');
-      new_window_setup := (others => '0');
-    elsif clk'event and clk = '1' then -- rising clock edge
-      new_window_setup := window_size - conv_std_logic_vector(64, REGISTER_WIDTH);
-      -- Advance time
-      time_counter <= time_counter + 1;
-      -- Advance window count
-      if time_counter = window_size or window_reset = '1' or ctrl_rst(0) = '1' then
-        time_counter <= (others => '0');
-        window_count <= window_count + 1;
-        new_window <= '1';
-      end if;
-
-      if time_counter = conv_std_logic_vector(10, REGISTER_WIDTH) then
-        -- hold new_window for 10 cycles to make sure perf. counters get the reset.
-        new_window <= '0';
-      end if;
-
+    
+  acc_state_reg : process(clk, rstn)
+  begin 
+    if rstn = '0' then 
+      acc_state <= '0';
+    elsif clk'event and clk = '1' then 
+      acc_state <= acc_state_next;
     end if;
-  end process time_stamp_update;
+  end process acc_state_reg;
 
-  update : process(clk, rstn)
-  begin --process
-      if rstn = '0' then 
-        updated <= '0';
-      elsif clk'event and clk = '1' then 
-        if new_window = '1' and updated = '0' then
-          updated <= '1';
-        elsif new_window = '0' then 
-          updated <= '0';
-        end if;
+  acc_reset  : process(mon_acc, acc_state)
+  begin 
+    acc_state_next <= acc_state;
+    acc_rst <= '0';
+    if acc_state = '0' then
+      if mon_acc.go = '1' and mon_acc.done = '0' then
+        acc_state_next <= '1';
+        acc_rst <= '1';
       end if;
-  end process;
-  
+    else
+      if mon_acc.done = '1' then 
+        acc_state_next <= '0';
+      end if;
+    end if;
+  end process acc_reset;
 
   counters : process (clk, rstn)
-    variable accelerator_mem_count : std_logic_vector(2*REGISTER_WIDTH-1 downto 0);
-    variable accelerator_tot_count : std_logic_vector(2*REGISTER_WIDTH-1 downto 0);
-    variable accelerator_tlb_count : std_logic_vector(REGISTER_WIDTH-1 downto 0);
+    variable accelerator_mem_count : std_logic_vector(2*REGISTER_WIDTH-1 downto 0) := (others => '0');
+    variable accelerator_tot_count : std_logic_vector(2*REGISTER_WIDTH-1 downto 0) := (others => '0');
+    variable accelerator_tlb_count : std_logic_vector(REGISTER_WIDTH-1 downto 0) := (others => '0');
   begin
     if rstn = '0' then
       for R in 0 to MONITOR_REG_COUNT-1 loop
@@ -291,6 +180,7 @@ architecture rtl of esp_tile_csr is
       accelerator_tlb_count := (others => '0');
       accelerator_mem_count := (others => '0');
       accelerator_tot_count := (others => '0');
+      window_count <= (others => '0');
     elsif clk'event and clk = '1' then 
       --DDR
       if mon_ddr.word_transfer = '1' then 
@@ -376,16 +266,22 @@ architecture rtl of esp_tile_csr is
         end loop; 
       end loop;
 
-      if new_window = '1' and updated = '0' then 
+      if ctrl_rst(0) = '1' then 
         for R in 0 to MONITOR_REG_COUNT - 1 loop
           count(R) <= (others => '0');
           count_value(R) <= count(R);
         end loop;
+        window_count <= window_count + 1;
         accelerator_tlb_count := (others => '0');
         accelerator_mem_count := (others => '0');
         accelerator_tot_count := (others => '0');
       end if;
-   
+      
+      if acc_rst = '1' then   
+        accelerator_tlb_count := (others => '0');
+        accelerator_mem_count := (others => '0');
+        accelerator_tot_count := (others => '0');
+      end if;
     end if;
   end process counters;
     

@@ -37,57 +37,37 @@ unsigned DMA_WORD_PER_BEAT(unsigned _st)
 	return (sizeof(void *) / _st);
 }
 
-void esp_init(void) {
-
-	int i;
-    pthread_mutex_init(&esp_status_coh_lock, NULL);
-    
-    esp_status_coh.active_acc_cnt = 0;
-	esp_status_coh.active_acc_cnt_full = 0;
-    esp_status_coh.active_footprint = 0;
-	esp_status_alloc.active_threads = 0;
-    for (i = 0; i < LLC_BANKS; i++) {
-        esp_status_coh.active_non_coh_split[i] = 0;
-        esp_status_coh.active_to_llc_split[i] = 0;
-        esp_status_coh.active_llc_coh_split[i] = 0;
-        esp_status_coh.active_full_coh_split[i] = 0;
-        esp_status_coh.active_llc_footprint_split[i] = 0;
-        esp_status_coh.active_footprint_split[i] = 0;
-        esp_status_alloc.active_allocations_split[i] = 0;
-        esp_status_alloc.active_allocations_cnt[i] = 0;
-    }
-    read_values();
-}
-
 static void esp_runtime_alloc_config (struct contig_alloc_params *params, size_t size){
-    unsigned int preferred_ddr = 0, lloaded_ddr = 0, threshold, cluster_size;
-    if (params->policy == CONTIG_ALLOC_PREFERRED){
-        preferred_ddr = params->pol.first.ddr_node;
-    } else if (params->policy  == CONTIG_ALLOC_LEAST_LOADED){
-        preferred_ddr = params->pol.lloaded.ddr_node;
-    } else if (params->policy == CONTIG_ALLOC_BALANCED){
-        preferred_ddr = params->pol.balanced.ddr_node;
+    unsigned int preferred_ddr, lloaded_ddr, threshold, cluster_size, min_allocated;
+    int m;
+
+    min_allocated = UINT_MAX;
+    for (m = 0; m < SOC_NDDR_CONTIG; m++){
+        if (esp_status_alloc.active_allocations_split[m] <= min_allocated){
+            min_allocated = esp_status_alloc.active_allocations_split[m];
+            lloaded_ddr = m;
+        }
     }
-
+   
     if (params->policy == CONTIG_ALLOC_AUTO){ 
-        threshold = params->pol.balanced.threshold;
-        cluster_size = params->pol.balanced.cluster_size;
-        if (params->policy ==  CONTIG_ALLOC_AUTO){
+        threshold = params->pol.automatic.threshold;
+        cluster_size = params->pol.automatic.cluster_size;
+        preferred_ddr = params->pol.automatic.ddr_node;
 
-            if (esp_status_alloc.active_allocations_split[preferred_ddr] == 0)
-                params->policy = CONTIG_ALLOC_PREFERRED;
-            else if (esp_status_alloc.active_allocations_split[lloaded_ddr] == 0)
-                params->policy = CONTIG_ALLOC_LEAST_LOADED;
-            else if (esp_status_alloc.active_threads > 5)
-                params->policy = CONTIG_ALLOC_LEAST_LOADED;
-            else if (size > cache_llc_size && esp_status_alloc.active_threads < SOC_NDDR_CONTIG)
-                params->policy = CONTIG_ALLOC_BALANCED;
-            else if (esp_status_alloc.active_allocations_split[preferred_ddr] < cache_llc_bank_size)
-                params->policy = CONTIG_ALLOC_PREFERRED;
-            else 
-                params->policy = CONTIG_ALLOC_LEAST_LOADED;
+
+        if (esp_status_alloc.active_allocations_split[preferred_ddr] == 0)
+            params->policy = CONTIG_ALLOC_PREFERRED;
+        else if (esp_status_alloc.active_allocations_split[lloaded_ddr] == 0)
+            params->policy = CONTIG_ALLOC_LEAST_LOADED;
+        else if (esp_status_alloc.active_threads > 5)
+            params->policy = CONTIG_ALLOC_LEAST_LOADED;
+        else if (size > cache_llc_size && esp_status_alloc.active_threads < SOC_NDDR_CONTIG)
+            params->policy = CONTIG_ALLOC_BALANCED;
+        else if (esp_status_alloc.active_allocations_split[preferred_ddr] < cache_llc_bank_size)
+            params->policy = CONTIG_ALLOC_PREFERRED;
+        else 
+            params->policy = CONTIG_ALLOC_LEAST_LOADED;
                        
-        } 
 
         if (params->policy == CONTIG_ALLOC_PREFERRED){
                 params->pol.first.ddr_node = preferred_ddr;
@@ -99,7 +79,7 @@ static void esp_runtime_alloc_config (struct contig_alloc_params *params, size_t
         }
     }
     
-    if (params->policy == CONTIG_ALLOC_LEAST_LOADED){
+    if (params->policy == CONTIG_ALLOC_LEAST_UTILIZED){
         params->policy = CONTIG_ALLOC_PREFERRED;
         params->pol.first.ddr_node = lloaded_ddr;
     }
@@ -108,20 +88,12 @@ static void esp_runtime_alloc_config (struct contig_alloc_params *params, size_t
 }  
 
 static void add_allocation_to_status(struct contig_alloc_params params, size_t size, unsigned int ddr_node){
-    int m, min_ddr;
+    int m;
     esp_status_alloc.active_threads += 1;
-    unsigned int min_allocated = UINT_MAX;
     
-    for (m = 0; m < SOC_NDDR_CONTIG; m++){
-        if (esp_status_alloc.active_allocations_split[m] <= min_allocated){
-            min_allocated = esp_status_alloc.active_allocations_split[m];
-            min_ddr = m;
-        }
-    }
-    
-    if (params.policy == CONTIG_ALLOC_LEAST_LOADED && ddr_node != min_ddr){
+   /* if (params.policy == CONTIG_ALLOC_LEAST_LOADED && ddr_node != min_ddr){
         printf("LEAST LOADED MISMATCH calculated is %d, actual is %d!!\n", min_ddr, ddr_node);
-    }
+    }*/
 
     if (params.policy == CONTIG_ALLOC_PREFERRED || params.policy == CONTIG_ALLOC_LEAST_UTILIZED || params.policy == CONTIG_ALLOC_LEAST_LOADED){
         esp_status_alloc.active_allocations_split[ddr_node] += size;
@@ -249,6 +221,7 @@ static void esp_runtime_coh_config(struct esp_access *esp, struct esp_status_coh
 static void esp_update_status_coh(int loop_iter, esp_thread_info_t *info, struct esp_access *esp, unsigned int state, unsigned int *ddr_accesses_start, unsigned int *ddr_accesses_end, acc_stats_t acc_stats, unsigned long long hw_ns, unsigned int *ddr_access_return, float *reward, float *best_time)
 {
 	unsigned int ddr_access_adjusted, ddr_accesses;
+    
     for (int m = 0; m < SOC_NDDR_CONTIG; m++){
         info->ddr_accesses_start[loop_iter][m] = ddr_accesses_start[m]; 
         info->ddr_accesses_end[loop_iter][m] = ddr_accesses_end[m]; 
@@ -504,13 +477,58 @@ void remove_buf(void *buf)
 	free(cur);
 }
 
+void *esp_alloc_policy_accs(struct contig_alloc_params *params, size_t size, int *accs, unsigned int nacc)
+{
+	void *contig_ptr;
+    unsigned int ddr_node;
+    int ddr_node_cost[SOC_NDDR_CONTIG];
+    int preferred_node_cost, preferred_node, m, d, devid;
+    
+    if (params->policy == CONTIG_ALLOC_PREFERRED || params->policy == CONTIG_ALLOC_AUTO) {
+        for (m = 0; m < SOC_NDDR_CONTIG; m++){
+            ddr_node_cost[m] = 0;
+        }
+
+        for (d = 0; d < nacc; d++){
+            for (m = 0; m < SOC_NDDR_CONTIG; m++){
+                devid = accs[d];       
+                ddr_node_cost[m] += abs(acc_locs[devid].row - contig_alloc_locs[m].row) + abs(acc_locs[devid].col - contig_alloc_locs[m].col);
+            }
+        }
+
+        preferred_node_cost = ddr_node_cost[0];
+        preferred_node = 0;
+        for (m = 1; m < SOC_NDDR_CONTIG; m++){
+            if (ddr_node_cost[m] < preferred_node_cost){
+                preferred_node_cost = ddr_node_cost[m];
+                preferred_node = m;
+            }
+        }
+        if (params->policy == CONTIG_ALLOC_PREFERRED)
+            params->pol.first.ddr_node = preferred_node;
+        else
+            params->pol.automatic.ddr_node = preferred_node;
+    }
+    
+    esp_runtime_alloc_config(params, size);
+    
+    contig_handle_t *handle = malloc(sizeof(contig_handle_t));
+    contig_ptr = contig_alloc_policy(*params, size, handle);
+	ddr_node = contig_to_most_allocated(*handle);
+    add_allocation_to_status(*params, size, ddr_node);
+
+    insert_buf(contig_ptr, handle, params->policy, size, ddr_node);
+	return contig_ptr;
+}
+
 void *esp_alloc_policy(struct contig_alloc_params *params, size_t size)
 {
 	unsigned int ddr_node;
     esp_runtime_alloc_config(params, size);
-    
+    void *contig_ptr;
+
     contig_handle_t *handle = malloc(sizeof(contig_handle_t));
-    void* contig_ptr = contig_alloc_policy(*params, size, handle);
+    contig_ptr = contig_alloc_policy(*params, size, handle);
 	ddr_node = contig_to_most_allocated(*handle);
     add_allocation_to_status(*params, size, ddr_node);
 
@@ -522,13 +540,15 @@ void *esp_alloc(size_t size)
 {
     unsigned int ddr_node;
 	struct contig_alloc_params params;
+    void *contig_ptr;
+
     params.policy = CONTIG_ALLOC_PREFERRED;
     params.pol.first.ddr_node = 0;
     
     esp_runtime_alloc_config(&params, size);
 
     contig_handle_t *handle = malloc(sizeof(contig_handle_t));
-	void* contig_ptr = contig_alloc(size, handle);
+	contig_ptr = contig_alloc(size, handle);
 	ddr_node = contig_to_most_allocated(*handle);
     add_allocation_to_status(params, size, ddr_node);
     
@@ -609,7 +629,7 @@ void esp_run_parallel(esp_thread_info_t* cfg[], unsigned nthreads, unsigned* nac
 	pthread_t *thread = malloc(nthreads * sizeof(pthread_t));
 	int rc = 0;
 	esp_config(cfg, nthreads, nacc);
-	for (i = 0; i < nthreads; i++) {
+    for (i = 0; i < nthreads; i++) {
 		unsigned len = nacc[i];
 		for (j = 0; j < len; j++) {
 			esp_thread_info_t *info = cfg[i] + j;
@@ -658,18 +678,20 @@ void esp_run_parallel(esp_thread_info_t* cfg[], unsigned nthreads, unsigned* nac
 			perror("pthread_create");
 		}
 	}
+	
+    if (nthreads > 1) {
+        for (i = 0; i < nthreads; i++) {
+            rc = pthread_join(thread[i], NULL);
 
-	for (i = 0; i < nthreads; i++) {
-		rc = pthread_join(thread[i], NULL);
-
-		if(rc != 0) {
-			perror("pthread_join");
-		}
-	}
+            if(rc != 0) {
+                perror("pthread_join");
+            }
+        }
+    }
 
 	gettime(&th_end);
 	print_time_info(cfg, ts_subtract(&th_start, &th_end), nthreads, nacc, loop_cnt);
-
+    
 	free(thread);
 }
 
@@ -677,4 +699,59 @@ void esp_run_parallel(esp_thread_info_t* cfg[], unsigned nthreads, unsigned* nac
 void esp_free(void *buf)
 {
 	remove_buf(buf);
+}
+
+void *monitor_base_ptr = NULL;
+
+void mmap_monitors(){
+    int fd = open("/dev/mem", O_RDWR);
+    monitor_base_ptr = mmap(NULL, SOC_ROWS * SOC_COLS * 0x200, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x80090000);
+    close(fd);
+}
+
+void munmap_monitors(){
+    munmap(monitor_base_ptr, SOC_ROWS * SOC_COLS * 0x200);
+}
+
+void read_ddr_accesses(unsigned int *ddr_accesses){
+    soc_loc_t loc;
+    unsigned int tile_no, offset;
+    unsigned int *mem_addr;
+    int m ;
+    for (m = 0; m < SOC_NDDR_CONTIG; m++){
+        loc = contig_alloc_locs[m];
+        tile_no = loc.row * SOC_COLS + loc.col;
+        offset = tile_no * (0x200 / sizeof(unsigned int)); 
+        mem_addr = ((unsigned int*) monitor_base_ptr) + offset + 4;
+        *(ddr_accesses + m) = *mem_addr;
+    }
+}
+
+void esp_init(void) {
+
+	int i;
+    pthread_mutex_init(&esp_status_coh_lock, NULL);
+    
+    esp_status_coh.active_acc_cnt = 0;
+	esp_status_coh.active_acc_cnt_full = 0;
+    esp_status_coh.active_footprint = 0;
+	esp_status_alloc.active_threads = 0;
+    for (i = 0; i < LLC_BANKS; i++) {
+        esp_status_coh.active_non_coh_split[i] = 0;
+        esp_status_coh.active_to_llc_split[i] = 0;
+        esp_status_coh.active_llc_coh_split[i] = 0;
+        esp_status_coh.active_full_coh_split[i] = 0;
+        esp_status_coh.active_llc_footprint_split[i] = 0;
+        esp_status_coh.active_footprint_split[i] = 0;
+        esp_status_alloc.active_allocations_split[i] = 0;
+        esp_status_alloc.active_allocations_cnt[i] = 0;
+    }
+    read_values();
+    mmap_monitors();
+}
+
+void esp_cleanup()
+{
+    print_values();
+    munmap_monitors();
 }

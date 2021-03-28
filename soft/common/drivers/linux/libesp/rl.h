@@ -1,5 +1,7 @@
 #define LIBESP
 #include <limits.h>
+
+#define LOCS
 #include "socmap.h"
 
 #define N_FULL_COH_ACC_BINS 3

@@ -3,8 +3,6 @@
 #include "libesp.h"
 #include "synth_stratus.h"
 #include "string.h"
-
-#define LOCS
 #include "socmap.h"
 
 #define DEBUG 1
@@ -36,18 +34,6 @@ typedef struct accelerator_thread_info {
     struct timespec th_end; 
     unsigned long long thread_time;
 } accelerator_thread_info_t;
-
-typedef struct soc_config {
-    int rows; 
-    int cols; 
-    int nmem;
-    int mem_y[SOC_NDDR_CONTIG];
-    int mem_x[SOC_NDDR_CONTIG]; 
-    int nsynth; 
-    int synth_y[SOC_NACC];
-    int synth_x[SOC_NACC]; 
-    int ddr_hops[SOC_NACC*SOC_NDDR_CONTIG]; 
-} soc_config_t; 
 
 size_t size_to_bytes (char* size){
     if (!strncmp(size, "M8", 2)){
@@ -117,38 +103,13 @@ ACC_COH_NONE,
 ACC_COH_LLC,
 };
 
-static void read_soc_config(FILE* f, soc_config_t* soc_config){
-    soc_config->rows = SOC_ROWS;
-    soc_config->cols = SOC_COLS;
-    //get locations of memory controllers
-    soc_config->nmem = SOC_NDDR_CONTIG;
-    for (int i = 0; i < soc_config->nmem; i++){
-        soc_config->mem_y[i] = contig_alloc_locs[i].row; 
-        soc_config->mem_x[i] = contig_alloc_locs[i].col; 
-    }
-    
-    //get locations of synthetic accelerators
-    soc_config->nsynth = SOC_NACC;
-   
-    for (int i = 0; i < soc_config->nsynth; i++){
-        soc_config->synth_y[i] = acc_locs[i].row;
-        soc_config->synth_x[i] = acc_locs[i].col; 
-    }
-
-    //calculate hops to each ddr controller
-    for (int s = 0; s < soc_config->nsynth; s++){
-        for (int m = 0; m < soc_config->nmem; m++){
-            soc_config->ddr_hops[s*soc_config->nmem + m] = abs(soc_config->synth_y[s] - soc_config->mem_y[m]) + abs(soc_config->synth_x[s] - soc_config->mem_x[m]);
-        }
-     }  
-}
-
 static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, struct synth_stratus_access ***synth_cfg, int phase, int* nthreads, int coherence_mode, enum accelerator_coherence coherence, unsigned **nacc, unsigned **loop_cnt){
     fscanf(f, "%d", nthreads); 
     dprintf("%d threads in phase %d\n", *nthreads, phase); 
     *cfg = malloc(sizeof(esp_thread_info_t*) * *nthreads);
     *nacc = malloc(sizeof(unsigned) * *nthreads);
     *loop_cnt = malloc(sizeof(unsigned) * *nthreads); 
+    *synth_cfg = malloc(sizeof(struct synth_stratus_access*) * *nthreads);
     for (int t = 0; t < *nthreads; t++){
         thread_info[t] = malloc(sizeof(accelerator_thread_info_t));
         thread_info[t]->tid = t;
@@ -160,7 +121,6 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
         (*cfg)[t] = malloc(sizeof(esp_thread_info_t) * thread_info[t]->ndev);
         (*synth_cfg)[t] = malloc(sizeof(struct synth_stratus_access) * thread_info[t]->ndev);
         (*nacc)[t] = thread_info[t]->ndev;
-
         char flow_choice[7];
         fscanf(f, "%s\n", flow_choice);
 
@@ -182,7 +142,9 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
             thread_info[t]->alloc_choice = CONTIG_ALLOC_LEAST_LOADED;
         } else if (!strcmp(alloc_choice, "balanced")){  
             thread_info[t]->alloc_choice = CONTIG_ALLOC_BALANCED;
-        }
+        } else if (!strcmp(alloc_choice, "lutil")){
+            thread_info[t]->alloc_choice = CONTIG_ALLOC_LEAST_UTILIZED;
+        } 
 
         fscanf(f, "%d\n", &thread_info[t]->loop_cnt);
         (*loop_cnt)[t] = thread_info[t]->loop_cnt;
@@ -309,35 +271,8 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
     }
 }
 
-static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, struct synth_stratus_access ***synth_cfg, int nthreads, soc_config_t soc_config, int alloc_mode, enum alloc_effort alloc, uint32_t **buffers, int phase, struct contig_alloc_params *alloc_params){
-    //size_t largest_sz = 0;
-    int* ddr_node_cost = malloc(sizeof(int)*soc_config.nmem);
-    int preferred_node_cost;
-    int preferred_node[NTHREADS_MAX];
-    //determine preferred controller for each thread 
-    for (int t = 0; t < nthreads; t++){
-        int m; 
-
-        for (m = 0; m < soc_config.nmem; m++){
-            ddr_node_cost[m] = 0;
-        }
-
-        for (int d = 0; d < thread_info[t]->ndev; d++){
-            for (int m = 0; m < soc_config.nmem; m++){
-                ddr_node_cost[m] += soc_config.ddr_hops[thread_info[t]->chain[d]*soc_config.nmem + m];
-            }
-        }
-        
-        preferred_node_cost = ddr_node_cost[0];
-        preferred_node[t] = 0;
-        for (m = 1; m < soc_config.nmem; m++){
-            if (ddr_node_cost[m] < preferred_node_cost){
-                preferred_node_cost = ddr_node_cost[m];
-                preferred_node[t] = m;
-            }
-        }
-    }
-    
+static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, struct synth_stratus_access ***synth_cfg, int nthreads, int alloc_mode, enum alloc_effort alloc, uint32_t **buffers, int phase, struct contig_alloc_params *alloc_params){
+       
     //set policy
     for (int i = 0; i < nthreads; i++){
         struct contig_alloc_params params; 
@@ -356,28 +291,27 @@ static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info
         }
         if (alloc_mode == CFG || alloc_mode == FIXED || alloc_mode == RAND || alloc_mode == FIRST){
             if (params.policy == CONTIG_ALLOC_PREFERRED){
-                if (alloc_mode == FIRST)
-                    params.pol.first.ddr_node = 0;
-                else
-                    params.pol.first.ddr_node = preferred_node[i]; 
+                params.pol.first.ddr_node = 0;
             } else if (params.policy == CONTIG_ALLOC_BALANCED){
                 params.pol.balanced.threshold = 0;
                 params.pol.balanced.cluster_size = 1;
-                params.pol.balanced.ddr_node = preferred_node[i];
             } else if (params.policy == CONTIG_ALLOC_LEAST_LOADED){
                 params.pol.lloaded.threshold = 0; 
-                params.pol.lloaded.ddr_node = preferred_node[i];
             }  else if (params.policy == CONTIG_ALLOC_AUTO){
-                params.pol.balanced.threshold = 0;
-                params.pol.balanced.cluster_size = 1;
-                params.pol.balanced.ddr_node = preferred_node[i];
+                params.pol.automatic.threshold = 0;
+                params.pol.automatic.cluster_size = 1;
+                params.pol.automatic.ddr_node = 0;
             }
         }
         
         alloc_params[i] = params;
         total_alloc += thread_info[i]->memsz;
-   
-        buffers[i] = (uint32_t *) esp_alloc_policy(&params, thread_info[i]->memsz);  
+        
+        if (alloc_mode == FIRST)
+            buffers[i] = (uint32_t *) esp_alloc_policy(&params, thread_info[i]->memsz);  
+        else
+            buffers[i] = (uint32_t *) esp_alloc_policy_accs(&params, thread_info[i]->memsz, thread_info[i]->chain, thread_info[i]->ndev);  
+
         thread_info[i]->alloc_choice = params.policy;
         if (buffers[i] == NULL){
             die_errno("error: cannot allocate %zu contig bytes", thread_info[i]->memsz);   
@@ -391,7 +325,6 @@ static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info
             (*cfg)[i][acc].hw_buf = (void*) buffers[i];
         }
     }
-    free(ddr_node_cost);
 }
 
 static int validate_buffer(accelerator_thread_info_t *thread_info,  struct synth_stratus_access **synth_cfg, uint32_t *buf){
@@ -443,7 +376,7 @@ static void free_phase(accelerator_thread_info_t **thread_info, esp_thread_info_
     free(cfg);
 }
 
-static void dump_results(FILE* out_file_d, FILE* out_file_t, FILE* out_file_p, FILE* out_file_status_d, accelerator_thread_info_t **thread_info, esp_thread_info_t ** cfg, struct synth_stratus_access **synth_cfg, soc_config_t *soc_config, int phase, int nthreads, char** argv, int test_no, unsigned long long *phase_total_cycles, unsigned long long phase_time, unsigned long long phase_ddr_accesses){
+static void dump_results(FILE* out_file_d, FILE* out_file_t, FILE* out_file_p, FILE* out_file_status_d, accelerator_thread_info_t **thread_info, esp_thread_info_t ** cfg, struct synth_stratus_access **synth_cfg, int phase, int nthreads, char** argv, int test_no, unsigned long long *phase_total_cycles, unsigned long long phase_time, unsigned long long phase_ddr_accesses){
     int t, d, l;
     unsigned long long thread_ns;
     unsigned long long thread_ddr_accesses;
@@ -555,32 +488,6 @@ static unsigned long long calculate_phase_ddr_accesses(unsigned int *ddr_accesse
         }
     }
     return ddr_accesses_total;
-}
-
-void *monitor_base_ptr = NULL;
-
-void mmap_monitors(){
-    int fd = open("/dev/mem", O_RDWR);
-    monitor_base_ptr = mmap(NULL, SOC_ROWS * SOC_COLS * 0x200, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0x80090000);
-    close(fd);
-}
-
-void munmap_monitors(){
-    munmap(monitor_base_ptr, SOC_ROWS * SOC_COLS * 0x200);
-}
-
-void read_ddr_accesses(unsigned int *ddr_accesses){
-    soc_loc_t loc;
-    unsigned int tile_no, offset;
-    unsigned int *mem_addr;
-    int m ;
-    for (m = 0; m < SOC_NDDR_CONTIG; m++){
-        loc = contig_alloc_locs[m];
-        tile_no = loc.row * SOC_COLS + loc.col;
-        offset = tile_no * (0x200 / sizeof(unsigned int)); 
-        mem_addr = ((unsigned int*) monitor_base_ptr) + offset + 4;
-        *(ddr_accesses + m) = *mem_addr;
-    }
 }
 
 int main (int argc, char** argv)
@@ -705,7 +612,10 @@ int main (int argc, char** argv)
         alloc_mode = FIXED;
         alloc = CONTIG_ALLOC_BALANCED;
     }
-    else if (!strcmp(argv[3], "auto")){
+    else if (!strcmp(argv[3], "lutil")){
+        alloc_mode = FIXED;
+        alloc = CONTIG_ALLOC_LEAST_UTILIZED;
+    }else if (!strcmp(argv[3], "auto")){
         alloc_mode = FIXED;
         alloc = CONTIG_ALLOC_AUTO;
     }
@@ -729,10 +639,7 @@ int main (int argc, char** argv)
         printf("No learning parameters supplied, using defaults\n");
     }
 
-    soc_config_t* soc_config = malloc(sizeof(soc_config_t)); 
-    read_soc_config(f, soc_config);
     esp_init();
-    mmap_monitors();
 
     //get phases
     int nphases; 
@@ -759,7 +666,7 @@ int main (int argc, char** argv)
     //loop over phases - config, alloc, spawn thread, validate, and free
     for (int p = 0; p < nphases; p++){
         config_threads(f, thread_info[p], &cfg, &synth_cfg, p, &nthreads, coherence_mode, coherence, &nacc, &loop_cnt); 
-        alloc_phase(thread_info[p], &cfg, &synth_cfg, nthreads, *soc_config, alloc_mode, alloc, buffers, p, params); 
+        alloc_phase(thread_info[p], &cfg, &synth_cfg, nthreads, alloc_mode, alloc, buffers, p, params); 
         
         read_ddr_accesses(ddr_accesses_start);
         gettime(&th_start);
@@ -768,7 +675,6 @@ int main (int argc, char** argv)
 
         gettime(&th_end); 
         read_ddr_accesses(ddr_accesses_end);
-        
         for (int t = 0; t < nthreads; t++){
             int errors = validate_buffer(thread_info[p][t], synth_cfg, buffers[t]);
             if (errors)
@@ -785,7 +691,7 @@ int main (int argc, char** argv)
 
         printf("PHASE.%d %.4f s\n", p, hw_s);
       
-        dump_results(out_file_d, out_file_t, out_file_p, out_file_status_d, thread_info[p], cfg, synth_cfg, soc_config, p, nthreads, argv, test_no, &phase_cycles, hw_ns, phase_ddr_accesses);
+        dump_results(out_file_d, out_file_t, out_file_p, out_file_status_d, thread_info[p], cfg, synth_cfg, p, nthreads, argv, test_no, &phase_cycles, hw_ns, phase_ddr_accesses);
 
         total_cycles += phase_cycles;
         total_ddr_accesses += phase_ddr_accesses;
@@ -793,18 +699,16 @@ int main (int argc, char** argv)
         free_phase(thread_info[p], cfg, synth_cfg, nthreads);
         free(nacc); 
     }
-    print_values();
     hw_s_total = (float) hw_ns_total / 1000000000;
  //   total_s = (float) total_ns / 1000000000.0;
     printf("TOTAL TIME %.9f s\n", hw_s_total); 
     
     //printf("TOTAL CYCLES %llu\n", total_cycles);
     printf("TOTAL DDR ACCESSES %llu\n", total_ddr_accesses);
-    munmap_monitors();    
-    free(soc_config);
     fclose(f);
     fclose(out_file_d); 
     fclose(out_file_t); 
     fclose(out_file_p); 
+    esp_cleanup();
     return 0; 
 }
