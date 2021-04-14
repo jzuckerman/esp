@@ -181,12 +181,13 @@ void conv2d::load_input()
 	    uint16_t adj_words_to_load = n_words_to_load + misaligned;
 
 	    dma_info_t dma_info(filters_offset_start_phys >> DMA_WORD_PER_BEAT_LOG2,
-				(n_words_to_load + misaligned + 1) >>
+				(n_words_to_load + misaligned + DMA_WORD_PER_BEAT_LOG2) >>
 				DMA_WORD_PER_BEAT_LOG2, DMA_SIZE);
 
-	    // ESP_REPORT_INFO("load_input load filters dma_info. offset: %u len %u",
-	    // 		filters_offset_start_phys, n_words_to_load);
-
+#ifndef STRATUS_HLS
+	    ESP_REPORT_INFO("load_input load filters dma_info. offset: %u len %u",
+	    		filters_offset_start_phys, n_words_to_load);
+#endif
 	    this->dma_read_ctrl.put(dma_info);
 
 	    for (uint16_t i = 0; i < adj_words_to_load; i += DMA_WORD_PER_BEAT)
@@ -251,12 +252,13 @@ void conv2d::load_input()
 		uint16_t adj_words_to_load = n_words_to_load + misaligned;
 
 		dma_info_t dma_info(bias_offset_start_phys >> DMA_WORD_PER_BEAT_LOG2,
-				    (n_words_to_load + misaligned + 1) >> DMA_WORD_PER_BEAT_LOG2,
+				    (n_words_to_load + misaligned + DMA_WORD_PER_BEAT_LOG2) >> DMA_WORD_PER_BEAT_LOG2,
 				    DMA_SIZE);
 
-		// ESP_REPORT_INFO("load_input load bias dma_info. offset: %u len %u",
-		// 		bias_offset_start_phys, n_words_to_load);
-
+#ifndef STRATUS_HLS
+		ESP_REPORT_INFO("load_input load bias dma_info. offset: %u len %u",
+				bias_offset_start_phys, n_words_to_load);
+#endif
 		this->dma_read_ctrl.put(dma_info);
 
 		for (uint16_t i = 0; i < adj_words_to_load; i += DMA_WORD_PER_BEAT)
@@ -361,13 +363,12 @@ void conv2d::load_input()
 			    uint16_t adj_words_to_load = n_words_to_load + misaligned;
 
 			    dma_info_t dma_info(offset_start >> DMA_WORD_PER_BEAT_LOG2,
-						(n_words_to_load + 1) >>
+						(n_words_to_load + DMA_WORD_PER_BEAT_LOG2) >>
 						DMA_WORD_PER_BEAT_LOG2, DMA_SIZE);
 
-			    // ESP_REPORT_INFO("load_input load features dma_info.
-			    // offset: %u len %u",
-			    // offset_start, n_words_to_load);
-
+#ifndef STRATUS_HLS
+			    ESP_REPORT_INFO("load_input load features dma_info. offset: %u len %u", offset_start, n_words_to_load);
+#endif
 			    this->dma_read_ctrl.put(dma_info);
 
 			    for (uint16_t i = 0; i < adj_words_to_load;
@@ -607,11 +608,12 @@ void conv2d::store_output()
 			HLS_DEFINE_PROTOCOL();
 			
 			dma_info_t dma_info(offset_start >> DMA_WORD_PER_BEAT_LOG2,
-					    (n_words_to_store + 1) >>
+					    (n_words_to_store + DMA_WORD_PER_BEAT_LOG2) >>
 					    DMA_WORD_PER_BEAT_LOG2, DMA_SIZE);
-                        // ESP_REPORT_INFO("store dma info. offset: %u len %u",
-                        // 		offset_start, n_words_to_store);
-			
+#ifndef STRATUS_HLS
+                        ESP_REPORT_INFO("store dma info. offset: %u len %u",
+                        		offset_start, n_words_to_store);
+#endif
 			this->dma_write_ctrl.put(dma_info);
 
 		    	for (uint16_t i = 0; i < n_words_to_store;
@@ -627,15 +629,15 @@ void conv2d::store_output()
 
 		    	    // Write to PLM (all DMA_WORD_PER_BEAT words in one cycle)
 		    	    if (ping_output) {
-		    		// std::cout << "store ping " <<
-		    		// INT2FP(plm_out_ping[plm_out_index]) << std::endl;
+		    		std::cout << "store ping " <<
+		    		INT2FP(plm_out_ping[plm_out_index]) << std::endl;
 		    		dataBv.range(31, 0) = plm_out_ping[plm_out_index++];
 #if (DMA_WORD_PER_BEAT == 2)
 		    		dataBv.range(63, 32) = plm_out_ping[plm_out_index++];
 #endif
 		    	    } else {
-		    		// std::cout << "store pong " <<
-		    		// INT2FP(plm_out_pong[plm_out_index]) << std::endl;
+		    		std::cout << "store pong " <<
+		    		INT2FP(plm_out_pong[plm_out_index]) << std::endl;
 		    		dataBv.range(31, 0) = plm_out_pong[plm_out_index++];
 #if (DMA_WORD_PER_BEAT == 2)
 		    		dataBv.range(63, 32) = plm_out_pong[plm_out_index++];
@@ -643,6 +645,8 @@ void conv2d::store_output()
 		    	    }
 
 		    	    this->dma_write_chnl.put(dataBv);
+
+			    wait();
 		    	}
 		    }
 		    out_channel_offset += out_channel_pool_offset_incr;
@@ -786,11 +790,13 @@ void conv2d::compute_kernel()
 		    uint16_t out_plm_offset = 0;
 		    uint16_t start_addr_base = in_i * loadable_chan_sz;
 		    // uint16_t start_addr_base1 = 0;
+		    wait();
 		    this->compute_load_handshake();
 
-		    // ESP_REPORT_INFO("compute_load_handshake %u %u",
-		    // 		filter_chunk, input_chunk);
-
+#ifndef STRATUS_HLS
+		    ESP_REPORT_INFO("compute_load_handshake %u %u %u %u",
+				    filter_chunk, b, input_chunk, (unsigned) in_i);
+#endif
 		    uint12_t channels;
 		    uint16_t filt_sz_loc;
 		    if (in_i < chan_iters - 1) {
@@ -806,8 +812,10 @@ void conv2d::compute_kernel()
 			for (uint16_t out_c = 0; out_c < (output_w << ilog2(stride)); out_c += stride)
 			{
 #ifdef NEWCOMPUTE
+#ifndef STRATUS_HLS
 			    // ESP_REPORT_INFO("compute_kernel most inner loop %u %u %u %u",
 			    // filter_chunk, input_chunk, out_r, out_c);
+#endif
 			    uint16_t ch = 0, ch_base = 0, ch_size = loadable_rows * width;
 			    uint16_t k_r = 0, k_c = 0;
 			    int16_t in_r_base = out_r + (no_first_row * pad) - pad, in_c_base =  out_c - pad;
@@ -989,6 +997,7 @@ void conv2d::compute_kernel()
 		}
 		first_row_to_load += max_cacheable_rows_i - (filter_dim - 1);
 		ping_output = !ping_output;
+
 		this->compute_store_handshake();
 	    }
 	}

@@ -13,7 +13,6 @@
 const unsigned int FPDATA_WL = DATA_WIDTH;
 const unsigned int FPDATA_IL = DATA_WIDTH / 2;
 const unsigned int FPDATA_FL = DATA_WIDTH - FPDATA_IL;
-typedef sc_dt::sc_int<DMA_WIDTH> PLM_WORD;
 
 #elif defined(FLOAT_POINT)
 
@@ -24,8 +23,6 @@ const unsigned int FPDATA_EL = 8;
 const unsigned int FPDATA_ML = 52;
 const unsigned int FPDATA_EL = 11;
 #endif
-
-typedef sc_dt::sc_uint<DMA_WIDTH> PLM_WORD;
 
 #endif
 
