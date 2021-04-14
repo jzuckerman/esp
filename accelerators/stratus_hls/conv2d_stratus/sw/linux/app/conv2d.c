@@ -93,16 +93,16 @@ static void init_parameters(int test, int32_t n_channels, int32_t feature_map_he
     *out_offset  = *in_len + *weights_len + *bias_len;
     *size = *in_size + *weights_size + *bias_size + *out_size;
 
-    cfg_000[0].desc.conv2d_desc.n_channels = n_channels;
-    cfg_000[0].desc.conv2d_desc.feature_map_height = feature_map_height;
-    cfg_000[0].desc.conv2d_desc.feature_map_width = feature_map_width;
-    cfg_000[0].desc.conv2d_desc.n_filters = n_filters;
-    cfg_000[0].desc.conv2d_desc.filter_dim = filter_dim;
-    cfg_000[0].desc.conv2d_desc.is_padded = is_padded;
-    cfg_000[0].desc.conv2d_desc.stride = stride;
-    cfg_000[0].desc.conv2d_desc.do_relu = do_relu;
-    cfg_000[0].desc.conv2d_desc.pool_type = pool_type;
-    cfg_000[0].desc.conv2d_desc.batch_size = batch_size;
+    conv2d_cfg_000[0].n_channels = n_channels;
+    conv2d_cfg_000[0].feature_map_height = feature_map_height;
+    conv2d_cfg_000[0].feature_map_width = feature_map_width;
+    conv2d_cfg_000[0].n_filters = n_filters;
+    conv2d_cfg_000[0].filter_dim = filter_dim;
+    conv2d_cfg_000[0].is_padded = is_padded;
+    conv2d_cfg_000[0].stride = stride;
+    conv2d_cfg_000[0].do_relu = do_relu;
+    conv2d_cfg_000[0].pool_type = pool_type;
+    conv2d_cfg_000[0].batch_size = batch_size;
 
     // print test info
     printf("  Prepare test %d parameters\n", test);
@@ -255,20 +255,6 @@ static void sw_run(int32_t n_channels, int32_t feature_map_height, int32_t featu
     printf("    Software execution time: %llu ns\n", hw_ns);
 }
 
-void flush(int *buf)
-{
-    int i;
-
-    printf("  Force flush\n");
-
-    for(i = 0; i < FLUSH_SIZE / sizeof(int); ++i)
-	buf[i] = i;
-
-    for(i = 0; i < FLUSH_SIZE / sizeof(int); ++i)
-	if (buf[i] < 0)
-	    printf("ERROR: Flush buffer contains a negative value!\n");
-}
-
 int main(int argc, char **argv)
 {
     int test, n_tests, start_test = 1;
@@ -279,7 +265,6 @@ int main(int argc, char **argv)
 
     token_t *acc_buf;
     native_t *sw_buf;
-    int *flush_buf;
 
     int32_t n_channels         [MAX_TESTS] = {16, 2,  2,  2,  64,   3,  4,  2,  4, 2,
 					      16, 2,128,  2,  64,   3,  4,  2,  4, 2,
@@ -349,8 +334,9 @@ int main(int argc, char **argv)
     printf("  Allocations\n");
     acc_buf = (token_t *) esp_alloc(MAX_SIZE);
     cfg_000[0].hw_buf = acc_buf;
+    (cfg_000[0].esp_desc)->footprint = 1;
+
     sw_buf = malloc(MAX_SIZE);
-    flush_buf = malloc(FLUSH_SIZE); // not needed if using non-coherent memory
 
     for (test = start_test - 1; test < n_tests + start_test - 1; ++test) {
 
@@ -368,9 +354,6 @@ int main(int argc, char **argv)
 
 	// initialize input data
 	init_buffer(acc_buf, sw_buf, out_offset);
-
-	// flush
-	flush(flush_buf);
 
 	// hardware execution
 	printf("\n  Start accelerator execution\n");
@@ -393,7 +376,6 @@ int main(int argc, char **argv)
     // free
     esp_cleanup();
     free(sw_buf);
-    free(flush_buf);
 
     printf("\n====== %s ======\n\n", cfg_000[0].devname);
 

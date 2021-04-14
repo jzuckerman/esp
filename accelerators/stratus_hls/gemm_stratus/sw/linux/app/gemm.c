@@ -61,7 +61,7 @@ static void init_parameters(int test, int32_t do_relu, int32_t transpose, int32_
 {
     int32_t ld_offset1, ld_offset2, st_offset;
     unsigned in2_len;
-
+    
     *in1_len = round_up(ninputs * d1 * d2, DMA_WORD_PER_BEAT(sizeof(token_t)));
     in2_len = round_up(ninputs * d2 * d3, DMA_WORD_PER_BEAT(sizeof(token_t)));
     *in_len = *in1_len + in2_len;
@@ -74,15 +74,15 @@ static void init_parameters(int test, int32_t do_relu, int32_t transpose, int32_
     ld_offset2 = *in1_len;
     st_offset = *in_len;
 
-    cfg_000[0].desc.gemm_desc.do_relu = do_relu;
-    cfg_000[0].desc.gemm_desc.transpose = transpose;
-    cfg_000[0].desc.gemm_desc.ninputs = ninputs;
-    cfg_000[0].desc.gemm_desc.d1 = d1;
-    cfg_000[0].desc.gemm_desc.d2 = d2;
-    cfg_000[0].desc.gemm_desc.d3 = d3;
-    cfg_000[0].desc.gemm_desc.ld_offset1 = ld_offset1;
-    cfg_000[0].desc.gemm_desc.ld_offset2 = ld_offset2;
-    cfg_000[0].desc.gemm_desc.st_offset = st_offset;
+    gemm_cfg_000[0].do_relu = do_relu;
+    gemm_cfg_000[0].transpose = transpose;
+    gemm_cfg_000[0].ninputs = ninputs;
+    gemm_cfg_000[0].d1 = d1;
+    gemm_cfg_000[0].d2 = d2;
+    gemm_cfg_000[0].d3 = d3;
+    gemm_cfg_000[0].ld_offset1 = ld_offset1;
+    gemm_cfg_000[0].ld_offset2 = ld_offset2;
+    gemm_cfg_000[0].st_offset = st_offset;
 
     // print test info
     printf("  Prepare test %d parameters\n", test);
@@ -138,20 +138,6 @@ static void sw_run(int32_t do_relu, int32_t transpose, int32_t ninputs,
     printf("    Software execution time: %llu ns\n", hw_ns);
 }
 
-void flush(int *buf)
-{
-    int i;
-
-    printf("  Force flush\n");
-
-    for(i = 0; i < FLUSH_SIZE / sizeof(int); ++i)
-	buf[i] = i;
-
-    for(i = 0; i < FLUSH_SIZE / sizeof(int); ++i)
-	if (buf[i] < 0)
-	    printf("ERROR: Flush buffer contains a negative value!\n");
-}
-
 int main(int argc, char **argv)
 {
     int test, n_tests, start_test = 1;
@@ -165,7 +151,6 @@ int main(int argc, char **argv)
 
     token_t *acc_buf;
     native_t *sw_buf;
-    int *flush_buf;
 
     int32_t do_relu  [MAX_TESTS] = {   0,  0,  0,    0,   0,  0,   0,   0,   0,    0,
 				       0,  0,  0,    0,   0,  0,   0,   0,   0,    0,
@@ -219,9 +204,9 @@ int main(int argc, char **argv)
 
     acc_buf = (token_t *) esp_alloc(MAX_SIZE);
     cfg_000[0].hw_buf = acc_buf;
+    (cfg_000[0].esp_desc)->footprint = 1;
 
     sw_buf = malloc(MAX_SIZE);
-    flush_buf = malloc(FLUSH_SIZE); // not needed if using non-coherent memory
 
     for (test = start_test - 1; test < n_tests + start_test - 1; ++test) {
 
@@ -235,9 +220,6 @@ int main(int argc, char **argv)
 
 	// initialize input data
 	init_buffer(acc_buf, sw_buf, in_len);
-
-	// flush
-	flush(flush_buf);
 
 	// hardware execution
 	printf("  Start accelerator execution\n");
@@ -258,7 +240,6 @@ int main(int argc, char **argv)
     // free
     esp_cleanup();
     free(sw_buf);
-    free(flush_buf);
 
     printf("\n====== %s ======\n\n", cfg_000[0].devname);
 

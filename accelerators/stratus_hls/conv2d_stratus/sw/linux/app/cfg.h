@@ -82,7 +82,6 @@ typedef float native_t;
 #define ACC_TLB_ENTRIES 128
 #define ACC_PAGE_SIZE (1 << 20)
 #define MAX_SIZE (ACC_PAGE_SIZE * ACC_TLB_ENTRIES)
-#define FLUSH_SIZE (ACC_PAGE_SIZE * 64)
 #define MAX_TESTS 40
 #define DMA_RATIO 2
 

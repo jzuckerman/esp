@@ -4,6 +4,7 @@
 #define __ESP_CFG_000_H__
 
 #include "libesp.h"
+#include "gemm_stratus.h"
 
 /* User defined */
 
@@ -81,7 +82,6 @@ typedef float native_t;
 #define ACC_TLB_ENTRIES 128
 #define ACC_PAGE_SIZE (1 << 20)
 #define MAX_SIZE (ACC_PAGE_SIZE * ACC_TLB_ENTRIES)
-#define FLUSH_SIZE (ACC_PAGE_SIZE * 64)
 #define MAX_TESTS 30
 
 struct gemm_stratus_access gemm_cfg_000[] = {
