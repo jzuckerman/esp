@@ -200,6 +200,7 @@ void conv2d::load_input()
 		dataBv = this->dma_read_chnl.get();
 		wait();
 
+#if (DMA_WORD_PER_BEAT == 2)
 		if (!(!i && misaligned)) { // TODO check correctness
 		    if (ping_weights) {
 			plm_weights_ping[plm_weights_index++] =
@@ -215,15 +216,26 @@ void conv2d::load_input()
 				dataBv.range(63,32).to_int();
 		    }
 		}
+#else
+                if (ping_weights) {
+                    plm_weights_ping[plm_weights_index++] = dataBv.to_int();
+                } else {
+                    plm_weights_pong[plm_weights_index++] = dataBv.to_int();
+                }
+#endif
 	    }
 
 	    for (uint8_t i = 0; i < PARALLELISM; i += DMA_WORD_PER_BEAT) {
 		if (ping_weights) {
 		    plm_weights_ping[plm_weights_index++] = 0;
+#if (DMA_WORD_PER_BEAT == 2)
 		    plm_weights_ping[plm_weights_index++] = 0;
+#endif
 		} else {
 		    plm_weights_pong[plm_weights_index++] = 0;
+#if (DMA_WORD_PER_BEAT == 2)
 		    plm_weights_pong[plm_weights_index++] = 0;
+#endif
 		}
 	    }
 
@@ -259,6 +271,7 @@ void conv2d::load_input()
 		    wait();
 
 		    // Write to PLM (all DMA_WORD_PER_BEAT words in one cycle)
+#if (DMA_WORD_PER_BEAT == 2)
 		    if (!(!i && misaligned)) {
 			if (ping_bias) {
 			    plm_bias_ping[plm_bias_i++] =
@@ -274,6 +287,13 @@ void conv2d::load_input()
 				    dataBv.range(63, 32).to_int();
 			}
 		    }
+#else
+                    if (ping_bias) {
+                        plm_bias_ping[plm_bias_i++] = dataBv.to_int();
+                    } else {
+                        plm_bias_pong[plm_bias_i++] = dataBv.to_int();
+                    }
+#endif
 		}
 
 		bias_offset_start_phys += n_words_to_load;
@@ -363,6 +383,7 @@ void conv2d::load_input()
 				wait();
 
 				// Write to PLM (all DMA_WORD_PER_BEAT words in one cycle)
+#if (DMA_WORD_PER_BEAT == 2)
 				if (!(!i && misaligned)) {
 				    if (ping_input) {
 					plm_in_ping[plm_in_index++] =
@@ -378,6 +399,13 @@ void conv2d::load_input()
 						dataBv.range(63, 32).to_int();
 				    }
 				}
+#else
+                                if (ping_input) {
+                                    plm_in_ping[plm_in_index++] = dataBv.to_int();
+                                } else {
+                                    plm_in_pong[plm_in_index++] = dataBv.to_int();
+                                }
+#endif
 			    }
 			    channel_offset += channel_offset_incr;
 			}
@@ -602,12 +630,16 @@ void conv2d::store_output()
 		    		// std::cout << "store ping " <<
 		    		// INT2FP(plm_out_ping[plm_out_index]) << std::endl;
 		    		dataBv.range(31, 0) = plm_out_ping[plm_out_index++];
+#if (DMA_WORD_PER_BEAT == 2)
 		    		dataBv.range(63, 32) = plm_out_ping[plm_out_index++];
+#endif
 		    	    } else {
 		    		// std::cout << "store pong " <<
 		    		// INT2FP(plm_out_pong[plm_out_index]) << std::endl;
 		    		dataBv.range(31, 0) = plm_out_pong[plm_out_index++];
+#if (DMA_WORD_PER_BEAT == 2)
 		    		dataBv.range(63, 32) = plm_out_pong[plm_out_index++];
+#endif
 		    	    }
 
 		    	    this->dma_write_chnl.put(dataBv);

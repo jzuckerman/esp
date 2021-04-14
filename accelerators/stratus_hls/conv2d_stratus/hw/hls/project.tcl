@@ -118,7 +118,7 @@ append COMMON_CFG_FLAGS \
       -DOUTPUT_PLM_SIZE=$output_plm_size \
       -DPATCH_PLM_SIZE=$patch_plm_size -DMAC_PLM_SIZE=$mac_plm_size"
 
-foreach dma [list 64] {
+foreach dma [list 32 64] {
     define_io_config * IOCFG_DMA$dma -DDMA_WIDTH=$dma $COMMON_CFG_FLAGS
     define_system_config tb TESTBENCH_DMA$dma -io_config IOCFG_DMA$dma
 

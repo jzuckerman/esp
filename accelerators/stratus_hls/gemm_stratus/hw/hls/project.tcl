@@ -99,7 +99,7 @@ if {$TECH_IS_XILINX == 1} {
 #
 # DSE configuration
 #
-set DMA_WIDTH "64"
+set DMA_WIDTH "32 64"
 set DMA_CHUNK "2048" 
 set WORD_SIZE "32"
 set PARALLELISM "8"

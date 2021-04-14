@@ -225,7 +225,9 @@ void gemm::load_input()
 				HLS_BREAK_ARRAY_DEPENDENCY(input0);
 				HLS_BREAK_ARRAY_DEPENDENCY(input1);
 
+#if (WORDS_PER_DMA == 2)                                
 				if (pingpong_m1) {
+
 				    if (!(misaligned && !k))
 					input0[i++] = data.range(31,0).to_uint();
 				    if (i < DMA_CHUNK)
@@ -236,6 +238,13 @@ void gemm::load_input()
 				    if (i < DMA_CHUNK)
 					input1[i++] = data.range(63,32).to_uint();
 				}
+#else
+				if (pingpong_m1) {
+                                    input0[i++] = data.to_uint();
+				} else {
+                                    input1[i++] = data.to_uint();
+				}
+#endif
 				// i+=2;
     			    }
 			    wait(); // Only considered in behavioral simulation
@@ -290,6 +299,13 @@ void gemm::load_input()
 				HLS_BREAK_ARRAY_DEPENDENCY(input2);
 				HLS_BREAK_ARRAY_DEPENDENCY(input3);
 
+#if (WORDS_PER_DMA != 2)
+                                if (pingpong_m2)
+                                    input2[i] = data.to_uint();
+                                else
+                                    input3[i] = data.to_uint();
+                                i += m2_plm_incr;
+#else        
 				if (!(misaligned && !k)) {
 				    if (pingpong_m2)
 					input2[i] = data.range(31,0).to_uint();
@@ -307,6 +323,7 @@ void gemm::load_input()
 					input3[i] = data.range(63,32).to_uint();
 				    i += m2_plm_incr;
 				}
+#endif
 				wait();
 			    }
     			}
@@ -489,13 +506,17 @@ void gemm::store_output()
 				if (pingpong) {
 				    // std::cout << "outout0 : " << INT2FP(output0[i]) << std::endl;
 				    data.range(31,0) = output0[i++];
+#if (WORDS_PER_DMA == 2)
 				    // std::cout << "outout0 : " << INT2FP(output0[i]) << std::endl;
 				    data.range(63,32) = output0[i++];
+#endif
 				} else {
 				    // std::cout << "outout1 : " << INT2FP(output1[i]) << std::endl;
 				    data.range(31,0) = output1[i++];
+#if (WORDS_PER_DMA == 2)
 				    // std::cout << "outout1 : " << INT2FP(output1[i]) << std::endl;
 				    data.range(63,32) = output1[i++];
+#endif
 				}
 
     				wait(); // Only considered in behavioral simulation
