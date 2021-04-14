@@ -174,13 +174,6 @@ static void init_buf (token_t *in, native_t * gold)
     size = (n_channels * feature_map_height * feature_map_width) +
 	(n_channels * n_filters * filter_height * filter_width) +
 	n_filters;
-
-#ifdef __FIXED
-    for (i = 0; i < size; i++) {
-        in[i] = float2fx(in[i], FX_IL);
-    }
-#endif
-
 }
 
 
