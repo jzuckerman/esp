@@ -74,8 +74,8 @@ define_system_module tb ../tb/system.cpp ../tb/sc_main.cpp
 #
 set INPUT_PATH  "../datagen/input"
 set OUTPUT_PATH "../datagen/output"
-# set TESTBENCHES "testS testM testL testR testC testNTS testNTM testNTL"
-set TESTBENCHES "testS"
+set TESTBENCHES "testS testM testL testR testC testNTS testNTM testNTL"
+#set TESTBENCHES "testS"
 
 #
 # Common options for all configurations
