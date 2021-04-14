@@ -86,9 +86,9 @@ const int32_t ninputs = 2;
 const int32_t d3 = 8;
 const int32_t d2 = 8;
 const int32_t d1 = 8;
-const int32_t st_offset = ninputs * (d1 * d2 + d2 * d3);
+int32_t st_offset;
 const int32_t ld_offset1 = 0;
-const int32_t ld_offset2 = ninputs * (d1 * d2);
+int32_t ld_offset2;
 
 static unsigned in_words_adj;
 static unsigned out_words_adj;
@@ -120,7 +120,6 @@ static unsigned mem_size;
 
 static int validate_buf(token_t *out, native_t *gold)
 {
-	int i;
 	int j;
 	native_t val;
 	unsigned errors = 0;
@@ -146,9 +145,7 @@ static int validate_buf(token_t *out, native_t *gold)
 
 static void init_buf (token_t *in, native_t * gold)
 {
-    int i, j , k, l, n, out;
-    int d1i, d2i, d3i;
-    native_t cnt;
+    int i;
 
 #include "input.h"
 
@@ -175,6 +172,9 @@ int main(int argc, char * argv[])
 	unsigned errors = 0;
 	unsigned coherence;
 
+	st_offset = ninputs * (d1 * d2 + d2 * d3);
+	ld_offset2 = ninputs * (d1 * d2);
+	
 	if (DMA_WORD_PER_BEAT(sizeof(token_t)) <= 1) {
 		in_words_adj = ninputs * (d1*d2 + d2*d3);
 		out_words_adj = ninputs * d1 * d3;
@@ -242,7 +242,7 @@ int main(int argc, char * argv[])
 			// Pass common configuration parameters
 
 			iowrite32(dev, SELECT_REG, ioread32(dev, DEVID_REG));
-			iowrite32(dev, COHERENCE_REG, ACC_COH_NONE);
+			iowrite32(dev, COHERENCE_REG, coherence);
 
 			iowrite32(dev, PT_ADDRESS_REG, (unsigned long) ptable);
 
@@ -266,7 +266,7 @@ int main(int argc, char * argv[])
 			iowrite32(dev, GEMM_LD_OFFSET2_REG, ld_offset2);
 
 			// Flush (customize coherence model here)
-			esp_flush(ACC_COH_NONE);
+			esp_flush(coherence);
 
 			// Start accelerators
 			printf("  Start...\n");
