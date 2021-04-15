@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sld>
+  <accelerator name="svhn_autoenc" desc="Accelerator SVHN_AUTOENC" data_size="4" device_id="090" hls_tool="hls4ml">
+    <param name="nbursts" desc="nbursts" />
+  </accelerator>
+</sld>
