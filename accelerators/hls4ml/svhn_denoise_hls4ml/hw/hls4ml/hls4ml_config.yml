@@ -1,0 +1,24 @@
+KerasJson: model/svhn_small_grayscale_denoising_autoencoder.json
+KerasH5: model/svhn_small_grayscale_denoising_autoencoder_weights.h5
+InputData: dat/svhn_small_grayscale_denoising_autoencoder_input_features.dat
+OutputPredictions: dat/svhn_small_grayscale_denoising_autoencoder_predictions.dat
+OutputDir: my-hls-test
+ProjectName: myproject
+XilinxPart: xcku115-flvb2104-2-i
+ClockPeriod: 5
+Backend: Vivado
+
+IOType: io_parallel
+HLSConfig:
+  Model:
+    Precision: ap_fixed<16,6>
+    ReuseFactor: 1024
+  LayerType:
+    dense_1:
+      ReuseFactor: 1024
+    dense_2:
+      ReuseFactor: 256
+    dense_3:
+      ReuseFactor: 128
+    dense_4:
+      ReuseFactor: 256
