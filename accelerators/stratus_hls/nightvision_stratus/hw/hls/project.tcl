@@ -72,13 +72,13 @@ define_system_module tb ../tb/system.cpp ../tb/sc_main.cpp
 ######################################################################
 set DEFAULT_ARGV ""
 
-foreach dma [list 64] {
+foreach dma [list 32 64] {
     foreach plm_img_size [list 1024] {
 	foreach max_pxl_width_log [list 3] {
 
 	    # # Skip these configurations
-	    # if {$plm_img_size == 1024 && $max_pxl_width_log == 4} {continue}
-	    # if {$plm_img_size == 307200 && $max_pxl_width_log == 3} {continue}
+	    if {$plm_img_size == 1024 && $max_pxl_width_log == 4} {continue}
+	    if {$plm_img_size == 307200 && $max_pxl_width_log == 3} {continue}
 
 	    set ext DMA$dma\_IMG$plm_img_size\_PXL$max_pxl_width_log
 
