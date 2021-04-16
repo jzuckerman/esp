@@ -85,9 +85,9 @@ static void init_buf (token_t *in, token_t *gold)
 	unsigned i;
 
 	i = 0;
-#include "input.c"
+#include "input.h"
 	i = 0;
-#include "output_gold.c"
+#include "output_gold.h"
 }
 
 
