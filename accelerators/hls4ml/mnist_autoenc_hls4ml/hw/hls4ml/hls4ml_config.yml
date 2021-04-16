@@ -1,0 +1,20 @@
+KerasJson: model/mnist_autoencoder.json
+KerasH5: model/mnist_autoencoder_weights.h5
+InputData: dat/mnist_deep_autoencoder_inputs.dat
+OutputPredictions: dat/mnist_deep_autoencoder_outputs.dat
+OutputDir: my-hls-test
+ProjectName: myproject
+XilinxPart: xcku115-flvb2104-2-i
+ClockPeriod: 5
+Backend: Vivado
+
+IOType: io_parallel
+HLSConfig:
+  Model:
+    Precision: ap_fixed<16,6>
+    ReuseFactor: 784
+  LayerType:
+    dense_1:
+      ReuseFactor: 784
+    dense_2:
+      ReuseFactor: 32
