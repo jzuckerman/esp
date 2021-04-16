@@ -83,10 +83,10 @@ void myproject(
     #pragma HLS ARRAY_PARTITION variable=layer7_out complete dim=0
     nnet::relu<layer6_t, layer7_t, relu_config7>(layer6_out, layer7_out);
 
-    layer8_t layer8_out[N_LAYER_8];
-    #pragma HLS ARRAY_PARTITION variable=layer8_out complete dim=0
-    nnet::dense_latency<layer7_t, layer8_t, config8>(layer7_out, layer8_out, w8, b8);
+    // layer8_t layer8_out[N_LAYER_8];
+    // #pragma HLS ARRAY_PARTITION variable=layer8_out complete dim=0
+    nnet::dense_latency<layer7_t, layer8_t, config8>(layer7_out, layer9_out, w8, b8);
 
-    nnet::softmax<layer8_t, result_t, softmax_config9>(layer8_out, layer9_out);
+    // nnet::softmax<layer8_t, result_t, softmax_config9>(layer8_out, layer9_out);
 
 }
