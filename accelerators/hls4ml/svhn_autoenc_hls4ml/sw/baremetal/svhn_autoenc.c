@@ -28,8 +28,8 @@ static unsigned DMA_WORD_PER_BEAT(unsigned _st)
 /* <<--params-->> */
 const int32_t nbursts = 1;
 
-static unsigned in_words = 1024;
-static unsigned out_words = 1024;
+static unsigned in_words = 256;
+static unsigned out_words = 256;
 static unsigned in_words_adj;
 static unsigned out_words_adj;
 static unsigned in_len;

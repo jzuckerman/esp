@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<autopilotfilemapping:AutoPilotFileMapping xmlns:autopilotfilemapping="www.autoesl.com/autopilotfilemapping">
+  <source>
+    <originFiles name="myproject.cpp" path="/extras/home/giuseppe/research/projects/esp/hls4ml-pr-151.git/test/vivado_prj/svhn_small_grayscale_denoising_autoencoder-python3-xc7vx690tffg1927_2-c5-io_parallel-rf4096-ap_fixed_18_8_-Resource-2019.1/firmware/myproject.cpp"/>
+  </source>
+  <testbench>
+    <originFiles name="tb_data" path="/extras/home/giuseppe/research/projects/esp/hls4ml-pr-151.git/test/vivado_prj/svhn_small_grayscale_denoising_autoencoder-python3-xc7vx690tffg1927_2-c5-io_parallel-rf4096-ap_fixed_18_8_-Resource-2019.1/tb_data"/>
+    <originFiles name="weights" path="/extras/home/giuseppe/research/projects/esp/hls4ml-pr-151.git/test/vivado_prj/svhn_small_grayscale_denoising_autoencoder-python3-xc7vx690tffg1927_2-c5-io_parallel-rf4096-ap_fixed_18_8_-Resource-2019.1/firmware/weights"/>
+    <originFiles name="myproject_test.cpp" path="/extras/home/giuseppe/research/projects/esp/hls4ml-pr-151.git/test/vivado_prj/svhn_small_grayscale_denoising_autoencoder-python3-xc7vx690tffg1927_2-c5-io_parallel-rf4096-ap_fixed_18_8_-Resource-2019.1/myproject_test.cpp"/>
+  </testbench>
+</autopilotfilemapping:AutoPilotFileMapping>
