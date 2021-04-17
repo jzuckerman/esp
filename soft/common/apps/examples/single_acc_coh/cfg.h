@@ -11,6 +11,10 @@
 #include "sort_stratus.h"
 #include "spmv_stratus.h"
 #include "vitdodec_stratus.h"
+#include "conv2d_stratus.h"
+#include "gemm_stratus.h"
+#include "svhn_mlp_hls4ml.h"
+#include "svhn_autoenc_hls4ml.h"
 typedef uint32_t token_t;
 
 //---------------FFT------------
@@ -18,7 +22,7 @@ typedef uint32_t token_t;
 #define FX_IL 12
 
 /* <<--params-def-->> */
-#define LOG_LEN 11
+#define LOG_LEN 10
 #define LEN (1 << LOG_LEN)
 #define DO_BITREV 1
 #define NUM_BATCHES 1
@@ -227,6 +231,106 @@ esp_thread_info_t cfg_000[] = {
 		.ioctl_req = FFT_STRATUS_IOC_ACCESS,
 		.esp_desc = &(fft_cfg_000[0].esp),
 	}
+};
+
+//---------CONV2D-------------
+
+#define N_CHANNELS 2
+#define FEATURE_MAP_HEIGHT 6
+#define FEATURE_MAP_WIDTH 6
+#define N_FILTERS 2
+#define FILTER_DIM 3
+#define IS_PADDED 1
+#define STRIDE 1
+#define DO_RELU 0
+#define POOL_TYPE 0
+#define BATCH_SIZE 1
+
+struct conv2d_stratus_access conv2d_cfg_000[] = {
+    {
+        /* <<--descriptor-->> */
+        .n_channels = N_CHANNELS,
+        .feature_map_height = FEATURE_MAP_HEIGHT,
+        .feature_map_width = FEATURE_MAP_WIDTH,
+        .n_filters = N_FILTERS,
+        .filter_dim = FILTER_DIM,
+        .is_padded = IS_PADDED,
+        .stride = STRIDE,
+        .do_relu = DO_RELU,
+        .pool_type = POOL_TYPE,
+        .batch_size = BATCH_SIZE,
+        .src_offset = 0,
+        .dst_offset = 0,
+        .esp.coherence = ACC_COH_NONE,
+        .esp.p2p_store = 0,
+        .esp.p2p_nsrcs = 0,
+        .esp.p2p_srcs = {"", "", "", ""},
+    }
+};
+
+//---------GEMM---------------
+
+#define DO_RELU 0
+#define TRANSPOSE 1
+#define NINPUTS 2
+#define D3 8
+#define D2 8
+#define D1 8
+#define ST_OFFSET (NINPUTS * (D1 * D2 + D2 * D3))
+#define LD_OFFSET1 0
+#define LD_OFFSET2 (NINPUTS * (D1 * D2))
+
+struct gemm_stratus_access gemm_cfg_000[] = {
+    {
+        /* <<--descriptor-->> */
+        .do_relu = DO_RELU,
+        .transpose = TRANSPOSE,
+        .ninputs = NINPUTS,
+        .d3 = D3,
+        .d2 = D2,
+        .d1 = D1,
+        .st_offset = ST_OFFSET,
+        .ld_offset1 = LD_OFFSET1,
+        .ld_offset2 = LD_OFFSET2,
+        .src_offset = 0,
+        .dst_offset = 0,
+        .esp.coherence = ACC_COH_NONE,
+        .esp.p2p_store = 0,
+        .esp.p2p_nsrcs = 0,
+        .esp.p2p_srcs = {"", "", "", ""},
+    }
+};
+
+//----------MLP--------------
+
+#define NBURSTS 9
+
+struct svhn_mlp_hls4ml_access svhn_mlp_cfg_000[] = {
+    {
+        /* <<--descriptor-->> */
+        .nbursts = NBURSTS,
+        .src_offset = 0,
+        .dst_offset = 0,
+        .esp.coherence = ACC_COH_NONE,
+        .esp.p2p_store = 0,
+        .esp.p2p_nsrcs = 0,
+        .esp.p2p_srcs = {"", "", "", ""},
+    }
+};
+
+#define NBURSTS 9
+
+struct svhn_autoenc_hls4ml_access svhn_autoenc_cfg_000[] = {
+    {
+        /* <<--descriptor-->> */
+        .nbursts = NBURSTS,
+        .src_offset = 0,
+        .dst_offset = 0,
+        .esp.coherence = ACC_COH_NONE,
+        .esp.p2p_store = 0,
+        .esp.p2p_nsrcs = 0,
+        .esp.p2p_srcs = {"", "", "", ""},
+    }
 };
 
 #endif /* __ESP_CFG_000_H__ */

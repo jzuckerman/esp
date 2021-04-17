@@ -6,14 +6,14 @@ import sys
 #change these
 nacc = 9
 phases = 36
-nthreads = [1, 2, 3, 4, 6, 8]
+nthreads = [1, 2, 4, 6, 8, 9]
 coherence_choices = ["none", "llc", "recall", "full"]
 alloc_choices = ["preferred", "balanced", "lloaded"]
 flow_choices = ["serial"]
 
 i = 0
 while True:
-    s = "cfg_multiacc_" + str(i) + ".txt"
+    s = "cfg_esp4ml_" + str(i) + ".txt"
     if os.path.isfile(s):
         i += 1
     else:
@@ -21,18 +21,16 @@ while True:
 
 f = open(s, "w")
 
-#0 = sort
-#1 = cholesky
-#2 = vitdodec
-#3 = spmv
-#4 = fft
-#5 = nightvision
-#6 = mriq
-#7 = conv2d
-#8 = gemm
-#9 = mlp
+#0 = mlp 
+#1 = autoenc
+#2 = mlp
+#3 = nv
+#4 = nv
+#5 = mlp
+#6 = nv
+#7 = nv
+#8 = mlp
 
-valid_chains = [[4, 2], [7, 8], [8, 7], [5, 9], [3, 8], [1, 8], [8, 1]]
 
 f.write(str(phases) + "\n")
 
@@ -46,6 +44,12 @@ for p in range(phases):
     f.write(str(threads) + "\n")
     #512 MB / 4 bytes per word
     alloc = rand.choice(alloc_choices)
+    valid_chains = [[3, 0], [3, 2], [3, 5], [3,8],
+                    [4, 0], [4, 2], [4, 5], [4,8],
+                    [6, 0], [6, 2], [6, 5], [6,8],
+                    [7, 0], [7, 2], [7, 5], [7,8],
+                    [1, 0], [1, 2], [1, 5], [1,8]]
+    
     for t in range(threads):
         
         valid = False;
@@ -54,8 +58,8 @@ for p in range(phases):
             cohs = []
             valid = True
             # NDEVICES
-            if nacc / threads >= 2:
-                ndev = rand.randint(1, 2) 
+            if threads <= 6:
+                ndev = rand.randint(1,2)
             else:
                 ndev = 1
             #DATA FLOW
@@ -65,11 +69,14 @@ for p in range(phases):
                 flow_choice = rand.choice(flow_choices)
             
             loop_cnt = rand.choice(range(1,4)) 
-            
             if ndev == 2:
                 chain = rand.choice(valid_chains)
             else: 
                 chain = []
+    
+            if ndev == 2:
+                valid_chains.remove(chain)
+              
             #INPUT SIZE
             if p % 6 == 0:
                 size = 4 
@@ -84,9 +91,6 @@ for p in range(phases):
             else:
                 size = rand.randint(0,4)
            
-            if size == 4 and chain == [5, 9]:
-                valid = False
-
             #ALLOCATION
             for d in range(ndev):
                 if ndev == 2:
@@ -98,9 +102,6 @@ for p in range(phases):
                     valid = False
                     break
 
-                if dev == 6 or dev == 3:
-                    loop_cnt = 1
-                
                 devices.remove(dev)
                 devs.append(dev)
                     
@@ -115,6 +116,7 @@ for p in range(phases):
             if not valid:
                 for d in devs:
                     devices.append(d)
+                    valid_chains.append(chain)
 
         f.write(str(ndev) + "\n")
         f.write(flow_choice + "\n")

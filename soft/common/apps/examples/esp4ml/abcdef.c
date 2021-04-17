@@ -12,17 +12,16 @@
 #define NDEV_MAX 16
 #define IRREGULAR_SEED_MAX 2048
 
-#define NACC 10
-#define SORT 0
-#define CHOLESKY 1
-#define VITDODEC 2
-#define SPMV 3
-#define FFT 4
-#define NIGHTVISION 5
-#define MRIQ 6
-#define CONV2D 7
-#define GEMM 8
-#define MLP 9
+#define NACC 9
+#define MLP0 0
+#define AUTOENC 1
+#define MLP1 2
+#define NIGHTVISION0 3
+#define NIGHTVISION1 4
+#define MLP2 5
+#define NIGHTVISION2 6
+#define NIGHTVISION3 7
+#define MLP3 8
 
 #define CFG 0
 #define FIXED 1
@@ -40,7 +39,6 @@
 
 
 unsigned long long total_alloc = 0;
-int32_t spmv_buf_s[5794], spmv_buf_m[39224], spmv_buf_l[1141362];
 
 typedef struct accelerator_thread_info {
 	int tid; 
@@ -60,40 +58,37 @@ typedef struct accelerator_thread_info {
 } accelerator_thread_info_t;
 
 char* devnames[] = {
-    "sort_stratus.0",
-    "cholesky_stratus.0",
-    "vitdodec_stratus.0",
-    "spmv_stratus.0",
-    "fft_stratus.0",
-    "nightvision_stratus.0",
-    "mriq_stratus.0",
-    "conv2d_stratus.0",
-    "gemm_stratus.0",
     "svhn_mlp_hls4ml.0",
+    "svhn_autoenc_hls4ml.0",
+    "svhn_mlp_hls4ml.1",
+    "nightvision_stratus.0",
+    "nightvision_stratus.1",
+    "svhn_mlp_hls4ml.2",
+    "nightvision_stratus.2",
+    "nightvision_stratus.3",
+    "svhn_mlp_hls4ml.3",
 };
 
 char* accnames[] = {
-    "sort",
-    "cholesky",
-    "vitdodec",
-    "spmv",
-    "fft",
+    "svhn_mlp",
+    "svhn_autoenc",
+    "svhn_mlp",
     "nightvision",
-    "mriq",
-    "conv2d",
-    "gemm",
+    "nightvision",
+    "svhn_mlp",
+    "nightvision",
+    "nightvision",
     "svhn_mlp",
 };
 
 enum accelerator_coherence design_choices[] = {
-ACC_COH_NONE,
-ACC_COH_NONE,
-ACC_COH_LLC,
-ACC_COH_LLC,
-ACC_COH_RECALL,
 ACC_COH_RECALL,
 ACC_COH_NONE,
-ACC_COH_LLC,
+ACC_COH_RECALL,
+ACC_COH_RECALL,
+ACC_COH_RECALL,
+ACC_COH_NONE,
+ACC_COH_RECALL,
 ACC_COH_RECALL,
 ACC_COH_NONE,
 };
@@ -150,7 +145,6 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
 		unsigned in_place = 0;
 		unsigned int offset = 0;
         size_t prev_out_size;
-        unsigned conv_in_size, conv_weight_size, conv_bias_size;
 		/* char pattern[10]; */
 		char coh_choice[7];
 		for (int d = 0; d < thread_info[t]->ndev; d++){
@@ -170,334 +164,30 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
             printf("%d: %s\n", devid, accnames[devid]);
             printf("workload size: %d\n", s);
             switch(devid){
-                case SORT :
-                    sort_cfg_000[0].esp.coherence = coherence;
-                    sort_cfg_000[0].esp.devid = SORT;
-                    if (s == EXTRA_SMALL) {
-                        sort_cfg_000[0].size = 64;
-                        sort_cfg_000[0].batch = 64;
-                    } else if (s == SMALL) {
-                        sort_cfg_000[0].size = 128;
-                        sort_cfg_000[0].batch = 128;
-                    } else if (s == MEDIUM) {
-                        sort_cfg_000[0].size = 256;
-                        sort_cfg_000[0].batch = 256;
-                    } else if (s == LARGE) {
-                        sort_cfg_000[0].size = 512;
-                        sort_cfg_000[0].batch = 512;
-                    } else if (s == EXTRA_LARGE) {
-                        sort_cfg_000[0].size = 1024;
-                        sort_cfg_000[0].batch = 1024;
-                    }
+            case AUTOENC : 
+               svhn_autoenc_cfg_000[0].esp.coherence = coherence;
+               svhn_autoenc_cfg_000[0].esp.devid = AUTOENC;
+               if (s == SMALL) 
+                    svhn_autoenc_cfg_000[0].nbursts = 8;
+               else if (s == MEDIUM)
+                    svhn_autoenc_cfg_000[0].nbursts = 64;
+               else if (s == LARGE)
+                    svhn_autoenc_cfg_000[0].nbursts = 256;
+               else if (s == MEDIUM)
+                    svhn_autoenc_cfg_000[0].nbursts = 1024;
+               else if (s == LARGE)
+                    svhn_autoenc_cfg_000[0].nbursts = 2048;
 
-                    in_size = sort_cfg_000[0].size * sort_cfg_000[0].batch;
-                    out_size = in_size;
-                    in_place = 1;
-                    sort_cfg_000[0].src_offset = offset;
-                    sort_cfg_000[0].dst_offset = offset;
-                    (*cfg)[t][d].ioctl_req = SORT_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(sort_cfg_000[0].esp);
-                break;
-
-                case CHOLESKY :
-                    cholesky_cfg_000[0].esp.coherence = coherence;
-                    cholesky_cfg_000[0].esp.devid = CHOLESKY;
-                    if (s == EXTRA_SMALL) {
-                        cholesky_cfg_000[0].input_rows = 20;
-                        cholesky_cfg_000[0].output_rows = 20;
-                    } else if (s == SMALL) {
-                        cholesky_cfg_000[0].input_rows = 40;
-                        cholesky_cfg_000[0].output_rows = 40;
-                    } else if (s == MEDIUM) {
-                        cholesky_cfg_000[0].input_rows = 90;
-                        cholesky_cfg_000[0].output_rows = 90;
-                    } else if (s == LARGE) {
-                        cholesky_cfg_000[0].input_rows = 180;
-                        cholesky_cfg_000[0].output_rows = 180;
-                    } else if (s == EXTRA_LARGE) {
-                        cholesky_cfg_000[0].input_rows = 360;
-                        cholesky_cfg_000[0].output_rows = 360;
-                    }
-                    in_size = cholesky_cfg_000[0].input_rows *
-                              cholesky_cfg_000[0].input_rows;
-                    out_size = cholesky_cfg_000[0].output_rows *
-                              cholesky_cfg_000[0].output_rows;
-                    in_place = 0;
-                    cholesky_cfg_000[0].src_offset = offset;
-                    cholesky_cfg_000[0].dst_offset = offset;
-                    (*cfg)[t][d].ioctl_req = CHOLESKY_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(cholesky_cfg_000[0].esp);
-                break;
-
-                case VITDODEC :
-                    vitdodec_cfg_000[0].esp.coherence = coherence;
-                    vitdodec_cfg_000[0].esp.devid = VITDODEC;
-                    if (s == EXTRA_SMALL) {
-                        vitdodec_cfg_000[0].nbatches = 1;           
-                    } else if (s == SMALL) {
-                        vitdodec_cfg_000[0].nbatches = 4;           
-                    } else if (s == MEDIUM) {
-                        vitdodec_cfg_000[0].nbatches = 6; 
-                    } else if (s == LARGE) {
-                        vitdodec_cfg_000[0].nbatches = 24;           
-                    } else if (s == EXTRA_LARGE) {
-                        vitdodec_cfg_000[0].nbatches = 96; 
-                    }
-                    in_size = 24856 * vitdodec_cfg_000[0].nbatches / 4;
-                    out_size = 18592 * vitdodec_cfg_000[0].nbatches / 4;
-                    in_place = 0;
-                    vitdodec_cfg_000[0].src_offset = offset;
-                    vitdodec_cfg_000[0].dst_offset = offset;
-                    (*cfg)[t][d].ioctl_req = VITDODEC_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(vitdodec_cfg_000[0].esp);
-                break;
-
-                case FFT : 
-                    fft_cfg_000[0].esp.coherence = coherence;
-                    fft_cfg_000[0].esp.devid = FFT;
-                    if (s == EXTRA_SMALL) {
-                        fft_cfg_000[0].batch_size = 1; 
-                        fft_cfg_000[0].log_len = 10; 
-                    } else if (s == SMALL) {
-                        fft_cfg_000[0].batch_size = 2; 
-                        fft_cfg_000[0].log_len = 11; 
-                    } else if (s == MEDIUM) {
-                        fft_cfg_000[0].batch_size = 4; 
-                        fft_cfg_000[0].log_len = 12; 
-                    } else if (s == LARGE) {
-                        fft_cfg_000[0].batch_size = 8; 
-                        fft_cfg_000[0].log_len = 13; 
-                    } else if (s == EXTRA_LARGE) {
-                        fft_cfg_000[0].batch_size = 32;
-                        fft_cfg_000[0].log_len = 13; 
-                    }
-                    in_size = (1 << (fft_cfg_000[0].log_len + 1))
-                                * fft_cfg_000[0].batch_size;
-                    out_size = in_size;
-                    in_place = 0;
-                    fft_cfg_000[0].src_offset = offset;
-                    fft_cfg_000[0].dst_offset = offset + in_size * 4;
-                    (*cfg)[t][d].ioctl_req = FFT_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(fft_cfg_000[0].esp);
-                    
-                break;
-            
-                case NIGHTVISION :
-                    nightvision_cfg_000[0].esp.coherence = coherence;
-                    nightvision_cfg_000[0].esp.devid = NIGHTVISION;
-                    if (s == EXTRA_SMALL) {
-                        nightvision_cfg_000[0].nimages = 4;
-                    } else if (s == SMALL) {
-                        nightvision_cfg_000[0].nimages = 16;
-                    } else if (s == MEDIUM) {
-                        nightvision_cfg_000[0].nimages = 64;
-                    } else if (s == LARGE) {
-                        nightvision_cfg_000[0].nimages = 256;
-                    } else if (s == EXTRA_LARGE) {
-                        nightvision_cfg_000[0].nimages = 1024;
-                    }
-                    in_size = nightvision_cfg_000[0].nimages * 
-                              nightvision_cfg_000[0].rows * 
-                              nightvision_cfg_000[0].cols / 2;
-                    out_size = in_size;
-                    in_place = 0;
-                    nightvision_cfg_000[0].src_offset = offset;
-                    nightvision_cfg_000[0].dst_offset = offset + in_size * 4;
-                    (*cfg)[t][d].ioctl_req = NIGHTVISION_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(nightvision_cfg_000[0].esp);
-
-                break;
-
-                case SPMV : 
-                    spmv_cfg_000[0].esp.coherence = coherence;
-                    spmv_cfg_000[0].esp.devid = SPMV;
-                    if (s == EXTRA_SMALL) {
-                        spmv_cfg_000[0].nrows = 512;
-                        spmv_cfg_000[0].ncols = 512;
-                        spmv_cfg_000[0].max_nonzero = 8;
-                        spmv_cfg_000[0].mtx_len = 2385;
-                    } else if (s == SMALL) {
-                        spmv_cfg_000[0].nrows = 512;
-                        spmv_cfg_000[0].ncols = 512;
-                        spmv_cfg_000[0].max_nonzero = 8;
-                        spmv_cfg_000[0].mtx_len = 2385;
-                    } else if (s == MEDIUM) {
-                        spmv_cfg_000[0].nrows = 2048;
-                        spmv_cfg_000[0].ncols = 2048;
-                        spmv_cfg_000[0].max_nonzero = 16;
-                        spmv_cfg_000[0].mtx_len = 17564;
-                    } else if (s == LARGE) {
-                        spmv_cfg_000[0].nrows = 2048;
-                        spmv_cfg_000[0].ncols = 2048;
-                        spmv_cfg_000[0].max_nonzero = 16;
-                        spmv_cfg_000[0].mtx_len = 17564;
-                    } else if (s == EXTRA_LARGE) {
-                        spmv_cfg_000[0].nrows = 32768;
-                        spmv_cfg_000[0].ncols = 32768;
-                        spmv_cfg_000[0].max_nonzero = 32;
-                        spmv_cfg_000[0].mtx_len = 537913;
-                    }
-
-                    in_size = (spmv_cfg_000[0].mtx_len * 2 +
-                              spmv_cfg_000[0].nrows +
-                              spmv_cfg_000[0].ncols);
-                    out_size = spmv_cfg_000[0].nrows;
-                    in_place = 0;
-                    spmv_cfg_000[0].src_offset = offset;
-                    spmv_cfg_000[0].dst_offset = offset;
-                    (*cfg)[t][d].ioctl_req = SPMV_STRATUS_IOC_ACCESS;
-                    (*cfg)[t][d].esp_desc = &(spmv_cfg_000[0].esp);
-
-                break;
-
-                case MRIQ : 
-                    mriq_cfg_000[0].esp.coherence = coherence;
-                    mriq_cfg_000[0].esp.devid = MRIQ;
-                    if (s == EXTRA_SMALL) {
-                        mriq_cfg_000[0].batch_size_x = 128;
-                        mriq_cfg_000[0].batch_size_k = 128;
-                        mriq_cfg_000[0].num_batch_x = 4;
-                        mriq_cfg_000[0].num_batch_k = 4;
-                    } else if (s == SMALL) {
-                        mriq_cfg_000[0].batch_size_x = 128;
-                        mriq_cfg_000[0].batch_size_k = 512;
-                        mriq_cfg_000[0].num_batch_x = 4;
-                        mriq_cfg_000[0].num_batch_k = 4;
-                    } else if (s == MEDIUM) {
-                        mriq_cfg_000[0].batch_size_x = 128;
-                        mriq_cfg_000[0].batch_size_k = 1024;
-                        mriq_cfg_000[0].num_batch_x = 4;
-                        mriq_cfg_000[0].num_batch_k = 4;
-                    } else if (s == LARGE) {
-                        mriq_cfg_000[0].batch_size_x = 128;
-                        mriq_cfg_000[0].batch_size_k = 1024;
-                        mriq_cfg_000[0].num_batch_x = 6;
-                        mriq_cfg_000[0].num_batch_k = 6;
-                    } else if (s == EXTRA_LARGE) {
-                        mriq_cfg_000[0].batch_size_x = 128;
-                        mriq_cfg_000[0].batch_size_k = 1024;
-                        mriq_cfg_000[0].num_batch_x = 12;
-                        mriq_cfg_000[0].num_batch_k = 12;
-                }
-                in_size = (3 * mriq_cfg_000[0].batch_size_x * mriq_cfg_000[0].num_batch_x +
-                           5 * mriq_cfg_000[0].batch_size_k * mriq_cfg_000[0].num_batch_k); 
-                out_size = (2 * mriq_cfg_000[0].batch_size_x * mriq_cfg_000[0].num_batch_x); 
-                in_place = 0;
-                mriq_cfg_000[0].src_offset = offset;
-                mriq_cfg_000[0].dst_offset = offset;
-                (*cfg)[t][d].ioctl_req = MRIQ_STRATUS_IOC_ACCESS;
-                (*cfg)[t][d].esp_desc = &(mriq_cfg_000[0].esp);
+               in_size = 1024 * svhn_autoenc_cfg_000[0].nbursts;
+               out_size = 10 * svhn_autoenc_cfg_000[0].nbursts;
+               in_place = 0;
+               (*cfg)[t][d].ioctl_req = SVHN_AUTOENC_HLS4ML_IOC_ACCESS;
+               (*cfg)[t][d].esp_desc = &(svhn_autoenc_cfg_000[0].esp);
             break;
             
-            case CONV2D :
-                conv2d_cfg_000[0].esp.coherence = coherence;
-                conv2d_cfg_000[0].esp.devid = CONV2D;
-                if (s == EXTRA_SMALL) {
-                    conv2d_cfg_000[0].batch_size = 4;
-                    conv2d_cfg_000[0].n_channels = 8;
-                    conv2d_cfg_000[0].n_filters = 6;
-                    conv2d_cfg_000[0].feature_map_width = 8;
-                    conv2d_cfg_000[0].feature_map_height = 8;
-                    conv2d_cfg_000[0].filter_dim = 3;
-                } else if (s == SMALL) {
-                    conv2d_cfg_000[0].batch_size = 4;
-                    conv2d_cfg_000[0].n_channels = 8;
-                    conv2d_cfg_000[0].n_filters = 8;
-                    conv2d_cfg_000[0].feature_map_width = 16;
-                    conv2d_cfg_000[0].feature_map_height = 16;
-                    conv2d_cfg_000[0].filter_dim = 1;
-                } else if (s == MEDIUM) {
-                    conv2d_cfg_000[0].batch_size = 8;
-                    conv2d_cfg_000[0].n_channels = 16;
-                    conv2d_cfg_000[0].n_filters = 16;
-                    conv2d_cfg_000[0].feature_map_width = 16;
-                    conv2d_cfg_000[0].feature_map_height = 16;
-                    conv2d_cfg_000[0].filter_dim = 3;
-                } else if (s == LARGE) {
-                    conv2d_cfg_000[0].batch_size = 8;
-                    conv2d_cfg_000[0].n_channels = 16;
-                    conv2d_cfg_000[0].n_filters = 16;
-                    conv2d_cfg_000[0].feature_map_width = 32;
-                    conv2d_cfg_000[0].feature_map_height = 32;
-                    conv2d_cfg_000[0].filter_dim = 5;
-                } else if (s == EXTRA_LARGE) {
-                    conv2d_cfg_000[0].batch_size = 16;
-                    conv2d_cfg_000[0].n_channels = 32;
-                    conv2d_cfg_000[0].n_filters = 32;
-                    conv2d_cfg_000[0].feature_map_width = 32;
-                    conv2d_cfg_000[0].feature_map_height = 32;
-                    conv2d_cfg_000[0].filter_dim = 3;
-                }
-                conv_in_size = conv2d_cfg_000[0].batch_size * conv2d_cfg_000[0].n_channels
-                          * conv2d_cfg_000[0].feature_map_width * conv2d_cfg_000[0].feature_map_height;
-                conv_weight_size = conv2d_cfg_000[0].n_filters * conv2d_cfg_000[0].n_channels *
-                                   conv2d_cfg_000[0].filter_dim * conv2d_cfg_000[0].filter_dim;
-                conv_bias_size = conv2d_cfg_000[0].n_filters;
-                in_size = conv_in_size + conv_weight_size + conv_bias_size;
-                out_size = conv2d_cfg_000[0].batch_size * conv2d_cfg_000[0].n_filters *
-                           conv2d_cfg_000[0].feature_map_width * conv2d_cfg_000[0].feature_map_height;
-                in_place = 0;
-                conv2d_cfg_000[0].src_offset = offset;
-                conv2d_cfg_000[0].dst_offset = offset;
-                (*cfg)[t][d].ioctl_req = CONV2D_STRATUS_IOC_ACCESS;
-                (*cfg)[t][d].esp_desc = &(conv2d_cfg_000[0].esp);
-            break;
-
-        case GEMM : 
-            gemm_cfg_000[0].esp.coherence = coherence;
-            gemm_cfg_000[0].esp.devid = GEMM;
-            if (s == EXTRA_SMALL) {
-                gemm_cfg_000[0].ninputs = 2;
-                gemm_cfg_000[0].d1 = 32;
-                gemm_cfg_000[0].d2 = 32;
-                gemm_cfg_000[0].d3 = 16;
-                gemm_cfg_000[0].transpose = 1;
-            } else if (s == SMALL) {
-                gemm_cfg_000[0].ninputs = 6;
-                gemm_cfg_000[0].d1 = 32;
-                gemm_cfg_000[0].d2 = 28;
-                gemm_cfg_000[0].d3 = 32;
-                gemm_cfg_000[0].transpose = 0;
-            } else if (s == MEDIUM) {
-                gemm_cfg_000[0].ninputs = 6;
-                gemm_cfg_000[0].d1 = 64;
-                gemm_cfg_000[0].d2 = 52;
-                gemm_cfg_000[0].d3 = 64;
-                gemm_cfg_000[0].transpose = 1;
-            } else if (s == LARGE) {
-                gemm_cfg_000[0].ninputs = 8;
-                gemm_cfg_000[0].d1 = 128;
-                gemm_cfg_000[0].d2 = 64;
-                gemm_cfg_000[0].d3 = 128;
-                gemm_cfg_000[0].transpose = 0;
-            } else if (s == EXTRA_LARGE) {
-                gemm_cfg_000[0].ninputs = 8;
-                gemm_cfg_000[0].d1 = 256;
-                gemm_cfg_000[0].d2 = 128;
-                gemm_cfg_000[0].d3 = 256;
-                gemm_cfg_000[0].transpose = 1;
-            }
-            
-            gemm_cfg_000[0].ld_offset2 = gemm_cfg_000[0].ninputs *
-                                         gemm_cfg_000[0].d1 *
-                                         gemm_cfg_000[0].d2;
-            gemm_cfg_000[0].st_offset = gemm_cfg_000[0].ld_offset2 + 
-                                        gemm_cfg_000[0].ninputs *
-                                        gemm_cfg_000[0].d2 *
-                                        gemm_cfg_000[0].d3;
-            in_size = gemm_cfg_000[0].st_offset * 4;
-            out_size = gemm_cfg_000[0].ninputs *
-                       gemm_cfg_000[0].d1 *
-                       gemm_cfg_000[0].d3 * 4;
-            in_place = 0;
-            gemm_cfg_000[0].src_offset = offset;
-            gemm_cfg_000[0].dst_offset = offset;
-            (*cfg)[t][d].ioctl_req = GEMM_STRATUS_IOC_ACCESS;
-            (*cfg)[t][d].esp_desc = &(gemm_cfg_000[0].esp);
-            break;
-            case MLP : 
+            case MLP0 : 
                svhn_mlp_cfg_000[0].esp.coherence = coherence;
-               svhn_mlp_cfg_000[0].esp.devid = MLP;
+               svhn_mlp_cfg_000[0].esp.devid = MLP0;
                if (s == SMALL) 
                     svhn_mlp_cfg_000[0].nbursts = 2;
                else if (s == MEDIUM)
@@ -515,6 +205,170 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
                (*cfg)[t][d].ioctl_req = SVHN_MLP_HLS4ML_IOC_ACCESS;
                (*cfg)[t][d].esp_desc = &(svhn_mlp_cfg_000[0].esp);
             break;
+            
+            case MLP1 : 
+               svhn_mlp_cfg_001[0].esp.coherence = coherence;
+               svhn_mlp_cfg_001[0].esp.devid = MLP1;
+               if (s == SMALL) 
+                    svhn_mlp_cfg_001[0].nbursts = 2;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_001[0].nbursts = 8;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_001[0].nbursts = 32;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_001[0].nbursts = 128;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_001[0].nbursts = 512;
+
+               in_size = 1024 * svhn_mlp_cfg_001[0].nbursts;
+               out_size = 10 * svhn_mlp_cfg_001[0].nbursts;
+               in_place = 0;
+               (*cfg)[t][d].ioctl_req = SVHN_MLP_HLS4ML_IOC_ACCESS;
+               (*cfg)[t][d].esp_desc = &(svhn_mlp_cfg_001[0].esp);
+            break;
+            
+            case MLP2 : 
+               svhn_mlp_cfg_002[0].esp.coherence = coherence;
+               svhn_mlp_cfg_002[0].esp.devid = MLP2;
+               if (s == SMALL) 
+                    svhn_mlp_cfg_002[0].nbursts = 2;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_002[0].nbursts = 8;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_002[0].nbursts = 32;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_002[0].nbursts = 128;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_002[0].nbursts = 512;
+
+               in_size = 1024 * svhn_mlp_cfg_002[0].nbursts;
+               out_size = 10 * svhn_mlp_cfg_002[0].nbursts;
+               in_place = 0;
+               (*cfg)[t][d].ioctl_req = SVHN_MLP_HLS4ML_IOC_ACCESS;
+               (*cfg)[t][d].esp_desc = &(svhn_mlp_cfg_002[0].esp);
+            break;
+            
+            case MLP3 : 
+               svhn_mlp_cfg_003[0].esp.coherence = coherence;
+               svhn_mlp_cfg_003[0].esp.devid = MLP3;
+               if (s == SMALL) 
+                    svhn_mlp_cfg_003[0].nbursts = 2;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_003[0].nbursts = 8;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_003[0].nbursts = 32;
+               else if (s == MEDIUM)
+                    svhn_mlp_cfg_003[0].nbursts = 128;
+               else if (s == LARGE)
+                    svhn_mlp_cfg_003[0].nbursts = 512;
+
+               in_size = 1024 * svhn_mlp_cfg_003[0].nbursts;
+               out_size = 10 * svhn_mlp_cfg_003[0].nbursts;
+               in_place = 0;
+               (*cfg)[t][d].ioctl_req = SVHN_MLP_HLS4ML_IOC_ACCESS;
+               (*cfg)[t][d].esp_desc = &(svhn_mlp_cfg_003[0].esp);
+            break;
+
+            case NIGHTVISION0 :
+                nightvision_cfg_000[0].esp.coherence = coherence;
+                nightvision_cfg_000[0].esp.devid = NIGHTVISION0;
+                if (s == EXTRA_SMALL) {
+                    nightvision_cfg_000[0].nimages = 4;
+                } else if (s == SMALL) {
+                    nightvision_cfg_000[0].nimages = 16;
+                } else if (s == MEDIUM) {
+                    nightvision_cfg_000[0].nimages = 64;
+                } else if (s == LARGE) {
+                    nightvision_cfg_000[0].nimages = 256;
+                } else if (s == EXTRA_LARGE) {
+                    nightvision_cfg_000[0].nimages = 1024;
+                }
+                in_size = nightvision_cfg_000[0].nimages * 
+                          nightvision_cfg_000[0].rows * 
+                          nightvision_cfg_000[0].cols / 2;
+                out_size = in_size;
+                in_place = 0;
+                nightvision_cfg_000[0].src_offset = offset;
+                nightvision_cfg_000[0].dst_offset = offset + in_size * 4;
+                (*cfg)[t][d].ioctl_req = NIGHTVISION_STRATUS_IOC_ACCESS;
+                (*cfg)[t][d].esp_desc = &(nightvision_cfg_000[0].esp);
+            break;
+          
+             case NIGHTVISION1 :
+                nightvision_cfg_001[0].esp.coherence = coherence;
+                nightvision_cfg_001[0].esp.devid = NIGHTVISION1;
+                if (s == EXTRA_SMALL) {
+                    nightvision_cfg_001[0].nimages = 4;
+                } else if (s == SMALL) {
+                    nightvision_cfg_001[0].nimages = 16;
+                } else if (s == MEDIUM) {
+                    nightvision_cfg_001[0].nimages = 64;
+                } else if (s == LARGE) {
+                    nightvision_cfg_001[0].nimages = 256;
+                } else if (s == EXTRA_LARGE) {
+                    nightvision_cfg_001[0].nimages = 1024;
+                }
+                in_size = nightvision_cfg_001[0].nimages * 
+                          nightvision_cfg_001[0].rows * 
+                          nightvision_cfg_001[0].cols / 2;
+                out_size = in_size;
+                in_place = 0;
+                nightvision_cfg_001[0].src_offset = offset;
+                nightvision_cfg_001[0].dst_offset = offset + in_size * 4;
+                (*cfg)[t][d].ioctl_req = NIGHTVISION_STRATUS_IOC_ACCESS;
+                (*cfg)[t][d].esp_desc = &(nightvision_cfg_001[0].esp);
+            break;
+
+            case NIGHTVISION2 :
+                nightvision_cfg_002[0].esp.coherence = coherence;
+                nightvision_cfg_002[0].esp.devid = NIGHTVISION2;
+                if (s == EXTRA_SMALL) {
+                    nightvision_cfg_002[0].nimages = 4;
+                } else if (s == SMALL) {
+                    nightvision_cfg_002[0].nimages = 16;
+                } else if (s == MEDIUM) {
+                    nightvision_cfg_002[0].nimages = 64;
+                } else if (s == LARGE) {
+                    nightvision_cfg_002[0].nimages = 256;
+                } else if (s == EXTRA_LARGE) {
+                    nightvision_cfg_002[0].nimages = 1024;
+                }
+                in_size = nightvision_cfg_002[0].nimages * 
+                          nightvision_cfg_002[0].rows * 
+                          nightvision_cfg_002[0].cols / 2;
+                out_size = in_size;
+                in_place = 0;
+                nightvision_cfg_002[0].src_offset = offset;
+                nightvision_cfg_002[0].dst_offset = offset + in_size * 4;
+                (*cfg)[t][d].ioctl_req = NIGHTVISION_STRATUS_IOC_ACCESS;
+                (*cfg)[t][d].esp_desc = &(nightvision_cfg_002[0].esp);
+            break;
+
+            case NIGHTVISION3 :
+                nightvision_cfg_003[0].esp.coherence = coherence;
+                nightvision_cfg_003[0].esp.devid = NIGHTVISION3;
+                if (s == EXTRA_SMALL) {
+                    nightvision_cfg_003[0].nimages = 4;
+                } else if (s == SMALL) {
+                    nightvision_cfg_003[0].nimages = 16;
+                } else if (s == MEDIUM) {
+                    nightvision_cfg_003[0].nimages = 64;
+                } else if (s == LARGE) {
+                    nightvision_cfg_003[0].nimages = 256;
+                } else if (s == EXTRA_LARGE) {
+                    nightvision_cfg_003[0].nimages = 1024;
+                }
+                in_size = nightvision_cfg_003[0].nimages * 
+                          nightvision_cfg_003[0].rows * 
+                          nightvision_cfg_003[0].cols / 2;
+                out_size = in_size;
+                in_place = 0;
+                nightvision_cfg_003[0].src_offset = offset;
+                nightvision_cfg_003[0].dst_offset = offset + in_size * 4;
+                (*cfg)[t][d].ioctl_req = NIGHTVISION_STRATUS_IOC_ACCESS;
+                (*cfg)[t][d].esp_desc = &(nightvision_cfg_003[0].esp);
+            break;
+
             }			
             // TODO double check these lines for the case of multiple acc in a thread	
             if (!d)
@@ -578,92 +432,6 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
 	}
 }
 
-static void load_spmv(uint32_t* buffer, accelerator_thread_info_t *thread_info)
-{
-	int i, size;
-    int *buf;
-
-    if (thread_info->workload_size == EXTRA_SMALL) {
-        size = 5794;
-        buf = spmv_buf_s;
-    } else if(thread_info->workload_size == SMALL) {
-        size = 5794;
-        buf = spmv_buf_s;
-    } else if(thread_info->workload_size == MEDIUM)  {
-        size = 39224;
-        buf = spmv_buf_m;
-    } else if(thread_info->workload_size == LARGE) {
-        size = 39224;
-        buf = spmv_buf_m;
-    } else if(thread_info->workload_size == EXTRA_LARGE)  {
-        size = 1141362;
-        buf = spmv_buf_l;
-    } else {
-        return;
-    }
-
-	for (i = 0; i < size; i++) {
-		buffer[i] = buf[i];
-	}
-}
-
-static void read_spmv(int32_t* buffer, int size)
-{
-	FILE *fp = NULL;
-	char str_tmp[4];
-	int i;
-	unsigned nrows, ncols, max_nonzero, mtx_len;
-
-    if(size == SMALL) {
-		fp = fopen("in1.data", "r");
-    } else if(size == MEDIUM) {
-		fp = fopen("in2.data", "r");
-    } else if(size == LARGE) {
-		fp = fopen("in4.data", "r");
-    }
-
-    if (!fp)
-		die_errno("%s: cannot open SPMV file", __func__);
-
-	// Read configuration
-	fscanf(fp, "%u %u %u %u\n", &nrows, &ncols, &max_nonzero, &mtx_len);
-
-	/* printf("SPMV config: %u %u %u %u\n", nrows, ncols, max_nonzero, mtx_len); */
-
-	// Read input data
-	// Vals
-	fscanf(fp, "%s\n", str_tmp); // Read separator line: %%
-	for (i = 0; i < mtx_len; i++) {
-		float val;
-		fscanf(fp, "%f\n", &val);
-		buffer[i] = float_to_fixed32(val, 16);
-	}
-	// Cols
-	fscanf(fp, "%s\n", str_tmp); // Read separator line: %%
-	for (; i < mtx_len*2; i++) {
-		uint32_t col;
-		fscanf(fp, "%u\n", &col);
-		buffer[i] = col;
-	}
-	// Rows
-	fscanf(fp, "%s\n", str_tmp); // Read separator line: %%
-	fscanf(fp, "%s\n", str_tmp); // Read 0
-	for (; i < mtx_len*2 + nrows; i++) {
-		uint32_t row;
-		fscanf(fp, "%u\n", &row);
-		buffer[i] = row;
-	}
-	// Vect
-	fscanf(fp, "%s\n", str_tmp); // Read separator line: %%
-	for (; i < mtx_len*2 + nrows + ncols; i++) {
-		float vect;
-		fscanf(fp, "%f\n", &vect);
-		buffer[i] = float_to_fixed32(vect, 16);
-	}
-
-	fclose(fp);
-}
-
 static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, int nthreads, int alloc_mode, enum contig_alloc_policy alloc, uint32_t **buffers, int phase, struct contig_alloc_params *alloc_params){
 
     //set policy
@@ -711,13 +479,9 @@ static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info
 			die_errno("error: cannot allocate %zu contig bytes", thread_info[i]->memsz);   
 		}
 
-		if (!strcmp(accnames[thread_info[i]->chain[0]], "spmv")) {
-			load_spmv(buffers[i], thread_info[i]);
-		} else {
-			for (int j = 0; j < thread_info[i]->memsz_in; j++){
-				buffers[i][j] = rand();
-			}
-		}
+        for (int j = 0; j < thread_info[i]->memsz_in; j++){
+            buffers[i][j] = rand();
+        }
 	
 		for (int acc = 0; acc < thread_info[i]->ndev; acc++){
 			(*cfg)[i][acc].hw_buf = (void*) buffers[i];
@@ -918,7 +682,7 @@ int main (int argc, char** argv)
 	FILE* f;
 	f = fopen(argv[1], "r");
 
-	int test_no = 0;
+	int test_no = argv[1][9] - 48;
 	printf("test_no %d\n", test_no);
 	const char* out_name_d = "multiacc_devices.csv";
 	const char* out_name_t = "multiacc_threads.csv";
@@ -1067,17 +831,11 @@ int main (int argc, char** argv)
 	//cache_fill_params.pol.balanced.cluster_size = 1;
     //cache_fill_params.pol.balanced.ddr_node = 0;
     //int *cache_fill_buffer = (int*) esp_alloc_policy(&cache_fill_params, 3145728, &status_alloc);
-
-    read_spmv(spmv_buf_s, 1);
-    read_spmv(spmv_buf_m, 2);
-    read_spmv(spmv_buf_l, 3);
-    printf("read spmv done\n");
-
+   
     esp_init();
 
 	//get phases
-	int nphases;
-    printf("before fscanf\n");
+	int nphases; 
 	fscanf(f, "%d\n", &nphases); 
 	dprintf("%d phases\n", nphases);
     
