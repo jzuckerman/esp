@@ -1,3 +1,5 @@
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
+// SPDX-License-Identifier: Apache-2.0
 #include "libesp.h"
 #include "cfg.h"
 #include <fixed_point.h>
@@ -28,16 +30,13 @@ static int validate_buffer(token_t *out, token_t *gold)
             out_fl = fx2float(out[j], FX_IL);
             gold_fl = fx2float(gold[j], FX_IL);
             if ((fabs(gold_fl - out_fl) / fabs(gold_fl)) > ERR_TH) {
-                //printf(" GOLD = %f   and  OUT = %f  and J = %d \n", gold_fl, out_fl, j);
-                errors++; 
+                printf(" GOLD = %f   and  OUT = %f  and J = %d \n", gold_fl, out_fl, j);
+                errors++;
             }
         }
 
 	return errors;
 }
-
-
-
 
 /* User-defined code */
 static void init_parameters()
@@ -56,7 +55,6 @@ static void init_parameters()
 	out_offset = in_len;
 	size = (out_offset * sizeof(token_t)) + out_size;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -96,23 +94,23 @@ int main(int argc, char **argv)
 	token_t *buf;
 
 	init_parameters();
-    
+
     cholesky_cfg_000[0].esp.footprint = size;
     cholesky_cfg_000[0].esp.alloc_policy = CONTIG_ALLOC_PREFERRED;
 
 	buf = (token_t *) esp_alloc(size);
     cfg_000[0].hw_buf = buf;
-    
+
     gold = malloc(out_size);
 
-    //	init_buffer(buf, gold);
     #include "data.h"
     if (argc >= 3) {
         for (int i = 0; i < cholesky_cfg_000[0].input_rows * cholesky_cfg_000[0].input_rows; i++)
             buf[i] = rand();
     }
     printf("\n====== %s ======\n\n", cfg_000[0].devname);
-	/* <<--print-params-->> */
+
+    /* <<--print-params-->> */
 	printf("  .input_rows = %d\n", input_rows);
 	printf("  .output_rows = %d\n", output_rows);
 	printf("\n  ** START **\n");

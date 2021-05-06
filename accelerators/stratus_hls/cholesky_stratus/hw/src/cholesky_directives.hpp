@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef __CHOLESKY_DIRECTIVES_HPP__
@@ -17,7 +17,6 @@
 #define PLM_OUT_NAME "cholesky_plm_block_out_dma64"
 #define PLM_TEMP_NAME "cholesky_plm_block_temp_dma64"
 #endif
-
 
 #if defined(STRATUS_HLS)
 

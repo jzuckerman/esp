@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef __CHOLESKY_CONF_INFO_HPP__
@@ -25,9 +25,9 @@ public:
 
     conf_info_t(
         /* <<--ctor-args-->> */
-        int32_t input_rows, 
+        int32_t input_rows,
         int32_t output_rows
-        )
+    )
     {
         /* <<--ctor-custom-->> */
         this->input_rows = input_rows;

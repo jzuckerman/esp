@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
 // SPDX-License-Identifier: Apache-2.0
 
 #include <sstream>
@@ -93,12 +93,13 @@ void system_t::load_memory()
     in_size = in_words_adj * (1);
     out_size = out_words_adj * (1);
 
-ifstream f("../datagen/input.txt");
+    ifstream f("../datagen/input.txt");
     if (!f) {
         cout << "Cannot open input file.\n";
         return;
     }
-ifstream fo("../datagen/output.txt");
+
+    ifstream fo("../datagen/output.txt");
     if (!fo) {
         cout << "Cannot open input file.\n";
         return;
@@ -107,22 +108,20 @@ ifstream fo("../datagen/output.txt");
     in = new float[in_size];
     for (int i = 0; i < 1; i++)
         for (int j = 0; j < input_rows * input_rows; j++)
-          f>>  in[i * in_words_adj + j] ;
+            f>>  in[i * in_words_adj + j] ;
 
     // Compute golden output
-         gold = new float[out_size];
-            for (int i = 0; i < 1; i++)
-               for (int j = 0; j < output_rows * output_rows; j++)
-                                fo>>  gold[i * out_words_adj + j] ;
+    gold = new float[out_size];
+        for (int i = 0; i < 1; i++)
+            for (int j = 0; j < output_rows * output_rows; j++)
+                fo>>  gold[i * out_words_adj + j] ;
 
-for (int i =0 ; i < out_size; i++)
-              { sc_dt::sc_bv<DMA_WIDTH> gold_bv;
-                gold_bv.range( DATA_WIDTH - 1, 0) = fp2bv<FPDATA, WORD_SIZE>(FPDATA(gold[i ]));
-               //   cout << "gold [" << i <<" ]" << "=" << gold_bv.to_int64() << "; \n" ;
-                }
+    for (int i = 0; i < out_size; i++) {
+        sc_dt::sc_bv<DMA_WIDTH> gold_bv;
+        gold_bv.range( DATA_WIDTH - 1, 0) = fp2bv<FPDATA, WORD_SIZE>(FPDATA(gold[i ]));
+        // cout << "gold [" << i <<" ]" << "=" << gold_bv.to_int64() << "; \n" ;
+    }
 
-
-    
     // Memory initialization:
 #if (DMA_WORD_PER_BEAT == 0)
     for (int i = 0; i < in_size; i++)  {
@@ -149,7 +148,7 @@ for (int i =0 ; i < out_size; i++)
 
 void system_t::dump_memory()
 {
-    
+
     // Get results from memory
     out = new float [out_size];
     uint32_t offset = in_size;
@@ -164,12 +163,11 @@ void system_t::dump_memory()
 
         out[i] = data_bv.to_int64();
     }
-
 #else
 	offset = offset / DMA_WORD_PER_BEAT;
     for (int i = 0; i < out_size / DMA_WORD_PER_BEAT; i++)
         for (int j = 0; j < DMA_WORD_PER_BEAT; j++) {
-           FPDATA out_fx =  bv2fp<FPDATA, WORD_SIZE>(mem[offset + i].range((j + 1) * DATA_WIDTH - 1, j * DATA_WIDTH).to_int64());
+            FPDATA out_fx =  bv2fp<FPDATA, WORD_SIZE>(mem[offset + i].range((j + 1) * DATA_WIDTH - 1, j * DATA_WIDTH).to_int64());
 	out[i * DMA_WORD_PER_BEAT + j] = (float) out_fx;
 	// cout << " FIXED VALUE  " << out_fx << " FLOAT VALUE " << (float) out_fx << "\n";
 	}
@@ -184,18 +182,16 @@ int system_t::validate()
     // Check for mismatches
     uint32_t errors = 0;
 	int n=0;
-  const float ERR_TH = 0.25f; //20% error
+    const float ERR_TH = 0.25f; //20% error
     for (int i = 0; i < 1; i++) {
-        for (int j = 0; j < output_rows * output_rows; j++) {	
+        for (int j = 0; j < output_rows * output_rows; j++) {
             if (j==(output_rows *n)) {
 		        cout << "# ########################################  ROW " << (n+1) << "  ############################################# \n";
-			 //   cout << "\n";
                 n++;
 			}
             if ((fabs(gold[i* out_words_adj + j] - out[i* out_words_adj +j]) / fabs(gold[i * out_words_adj +j])) > ERR_TH) {
                 errors++;
-                printf("(%d, %d): %.5f, %.5f\n" , n, j % output_rows, out[i * out_words_adj + j], gold[i*out_words_adj + j]);
-		        //cout << "ELEMENT    "<< (j+1)<< "     GOLDEN      || " << gold[i * out_words_adj + j] << "      			 DESIGN  || " <<  out[i * out_words_adj + j] <<  "\n" ;
+                printf("(%d, %d): Out: %.5f, Gold: %.5f\n" , n, j % output_rows, out[i * out_words_adj + j], gold[i*out_words_adj + j]);
             }
         }
     }

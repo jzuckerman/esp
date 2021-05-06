@@ -1,6 +1,5 @@
-/* Copyright (c) 2011-2019 Columbia University, System Level Design Group */
-/* SPDX-License-Identifier: Apache-2.0 */
-
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
+// SPDX-License-Identifier: Apache-2.0
 #ifndef __riscv
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +20,6 @@ static unsigned DMA_WORD_PER_BEAT(unsigned _st)
 {
         return (sizeof(void *) / _st);
 }
-
 
 #define SLD_CHOLESKY 0x062
 #define DEV_NAME "sld,cholesky_stratus"
@@ -58,21 +56,18 @@ static int validate_buf(token_t *out, token_t *gold)
         unsigned errors = 0;
         const float ERR_TH = 0.2f;
         float out_fl, gold_fl;
-        for (i = 0; i < 1; i++)
-                for (j = 0; j < output_rows * output_rows; j++) {
-                    out_fl = fx2float(out[j], FX_IL);
-                    gold_fl = fx2float(gold[j], FX_IL);
-                    if ((fabs(gold[j] - out[j]) / fabs(gold[j])) > ERR_TH) {
-                        printf("ERR: GOLD = %f   and  OUT = %f and Element = %d\n", gold_fl, out_fl, j);
-                        errors++; }
-                }
-        
+        for (i = 0; i < 1; i++) {
+            for (j = 0; j < output_rows * output_rows; j++) {
+                out_fl = fx2float(out[j], FX_IL);
+                gold_fl = fx2float(gold[j], FX_IL);
+                if ((fabs(gold[j] - out[j]) / fabs(gold[j])) > ERR_TH) {
+                    printf("ERR: GOLD = %f   and  OUT = %f and Element = %d\n", gold_fl, out_fl, j);
+                    errors++; }
+            }
+        }
+
         return errors;
 }
-
-
-
-
 
 int main(int argc, char * argv[])
 {
@@ -135,15 +130,17 @@ int main(int argc, char * argv[])
 		ptable = aligned_malloc(NCHUNK(mem_size) * sizeof(unsigned *));
 		for (i = 0; i < NCHUNK(mem_size); i++)
 			ptable[i] = (unsigned *) &buf[i * (CHUNK_SIZE / sizeof(token_t))];
-		printf("  ptable = %p\n", ptable);
+
+        printf("  ptable = %p\n", ptable);
 		printf("  nchunk = %lu\n", NCHUNK(mem_size));
-        for (coherence = ACC_COH_NONE; coherence <= ACC_COH_FULL; coherence++) { 
+
+        for (coherence = ACC_COH_NONE; coherence <= ACC_COH_FULL; coherence++) {
             printf("  Generate input...\n");
-            //init_buf(mem, gold);
+
+            //data generated in hw/datagen/
             #include "data.h"
 
             // Pass common configuration parameters
-
             iowrite32(dev, SELECT_REG, ioread32(dev, DEVID_REG));
             iowrite32(dev, COHERENCE_REG, coherence);
 
@@ -188,7 +185,6 @@ int main(int argc, char * argv[])
             if (errors){
                 printf("  ... FAIL\n");
                 printf(" ERRORS = %d \n",errors);}
-                
             else
                 printf("  ... PASS\n");
         }

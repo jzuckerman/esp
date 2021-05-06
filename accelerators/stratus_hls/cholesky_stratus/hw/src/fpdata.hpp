@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef __NMF_FPDATA_HPP__
@@ -16,18 +16,13 @@
 // Data types
 
 const unsigned int WORD_SIZE = 32;
-
 const unsigned int FPDATA_WL = 32;
-
 const unsigned int FPDATA_IL = 12;
-
 const unsigned int FPDATA_PL = (FPDATA_WL - FPDATA_IL);
-
 
 typedef sc_dt::sc_int<WORD_SIZE> FPDATA_WORD;
 
 typedef cynw_fixed<FPDATA_WL, FPDATA_IL, SC_RND> FPDATA;
-
 
 template<typename T, size_t N>
 T bv2fp(sc_dt::sc_bv<N> data_in)

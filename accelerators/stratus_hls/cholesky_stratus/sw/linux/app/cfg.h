@@ -31,7 +31,7 @@ struct cholesky_stratus_access cholesky_cfg_000[] = {
         .esp.learn = 0,
     }
 };
- 
+
 esp_thread_info_t cfg_000[] = {
 	{
 		.run = true,
@@ -40,5 +40,5 @@ esp_thread_info_t cfg_000[] = {
         .esp_desc = &(cholesky_cfg_000[0].esp),
     }
 };
-        
+
 #endif /* __ESP_CFG_000_H__ */

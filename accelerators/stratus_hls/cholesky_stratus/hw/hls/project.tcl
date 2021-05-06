@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2019 Columbia University, System Level Design Group
+# Copyright (c) 2011-2021 Columbia University, System Level Design Group
 # SPDX-License-Identifier: Apache-2.0
 
 ############################################################
@@ -10,12 +10,10 @@
 #
 source ../../../common/hls/project.tcl
 
-
 #
 # Set the private memory library
 #
 use_hls_lib "./memlib"
-
 
 #
 # Local synthesis attributes
@@ -51,12 +49,10 @@ if {$TECH eq "cmos32soi"} {
 }
 set_attr clock_period $CLOCK_PERIOD
 
-
 #
 # System level modules to be synthesized
 #
 define_hls_module cholesky ../src/cholesky.cpp
-
 
 #
 # Testbench or system level modules

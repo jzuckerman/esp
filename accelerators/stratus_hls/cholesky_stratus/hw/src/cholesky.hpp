@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef __CHOLESKY_HPP__
@@ -39,7 +39,6 @@ public:
         HLS_MAP_plm(plm_fetch_outdata_pong, PLM_IN_NAME);
         HLS_MAP_plm(plm_temp_ping, PLM_IN_NAME);
         HLS_MAP_plm(plm_temp_pong, PLM_IN_NAME);
-
         HLS_MAP_plm(plm_in_pong, PLM_IN_NAME);
         HLS_MAP_plm(plm_in_ping, PLM_IN_NAME);
     }
@@ -68,11 +67,8 @@ public:
     sc_dt::sc_int<DATA_WIDTH> plm_fetch_outdata_pong[PLM_IN_WORD];
     sc_dt::sc_int<DATA_WIDTH> plm_temp_ping[PLM_IN_WORD];
     sc_dt::sc_int<DATA_WIDTH> plm_temp_pong[PLM_IN_WORD];
- 
     sc_dt::sc_int<DATA_WIDTH> plm_out_ping[PLM_OUT_WORD];
     sc_dt::sc_int<DATA_WIDTH> plm_out_pong[PLM_OUT_WORD];
-
 };
 
-
-#endif /* __CHOLESKY_6X6_HPP__ */
+#endif /* __CHOLESKY_HPP__ */

@@ -1,3 +1,5 @@
+// Copyright (c) 2011-2021 Columbia University, System Level Design Group
+// SPDX-License-Identifier: Apache-2.0
 #include <linux/of_device.h>
 #include <linux/mm.h>
 
@@ -54,10 +56,13 @@ static void cholesky_prep_xfer(struct esp_device *esp, void *arg)
 
 static bool cholesky_xfer_input_ok(struct esp_device *esp, void *arg)
 {
-	/* struct cholesky_stratus_device *cholesky = to_cholesky(esp); */
-	/* struct cholesky_stratus_access *a = arg; */
+	struct cholesky_stratus_device *cholesky = to_cholesky(esp);
+	struct cholesky_stratus_access *a = arg;
 
-	return true;
+    if (a->input_rows > 2048 || a->output_rows > 2048)
+        return false;
+
+    return true;
 }
 
 static int cholesky_probe(struct platform_device *pdev)
