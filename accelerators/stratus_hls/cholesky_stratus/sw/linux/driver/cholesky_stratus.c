@@ -13,8 +13,7 @@
 #define DRV_NAME	"cholesky_stratus"
 
 /* <<--regs-->> */
-#define CHOLESKY_INPUT_ROWS_REG 0x44
-#define CHOLESKY_OUTPUT_ROWS_REG 0x40
+#define CHOLESKY_ROWS_REG 0x40
 
 struct cholesky_stratus_device {
 	struct esp_device esp;
@@ -47,8 +46,7 @@ static void cholesky_prep_xfer(struct esp_device *esp, void *arg)
 	struct cholesky_stratus_access *a = arg;
 
 	/* <<--regs-config-->> */
-	iowrite32be(a->input_rows, esp->iomem + CHOLESKY_INPUT_ROWS_REG);
-	iowrite32be(a->output_rows, esp->iomem + CHOLESKY_OUTPUT_ROWS_REG);
+	iowrite32be(a->rows, esp->iomem + CHOLESKY_ROWS_REG);
 	iowrite32be(a->src_offset, esp->iomem + SRC_OFFSET_REG);
 	iowrite32be(a->dst_offset, esp->iomem + DST_OFFSET_REG);
 
@@ -59,7 +57,7 @@ static bool cholesky_xfer_input_ok(struct esp_device *esp, void *arg)
 	struct cholesky_stratus_device *cholesky = to_cholesky(esp);
 	struct cholesky_stratus_access *a = arg;
 
-    if (a->input_rows > 2048 || a->output_rows > 2048)
+    if (a->rows > 2048)
         return false;
 
     return true;

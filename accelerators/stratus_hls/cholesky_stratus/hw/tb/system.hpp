@@ -54,8 +54,7 @@ public:
         acc->debug(debug);
 
         /* <<--params-default-->> */
-        input_rows = 16;
-        output_rows = 16;
+        rows = 16;
     }
 
     // Processes
@@ -74,8 +73,7 @@ public:
 
     // Accelerator-specific data
     /* <<--params-->> */
-    int32_t input_rows;
-    int32_t output_rows;
+    int32_t rows;
 
     uint32_t in_words_adj;
     uint32_t out_words_adj;

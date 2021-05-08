@@ -25,8 +25,7 @@ static unsigned DMA_WORD_PER_BEAT(unsigned _st)
 #define DEV_NAME "sld,cholesky_stratus"
 
 /* <<--params-->> */
-const int32_t input_rows = 16;
-const int32_t output_rows = 16;
+const int32_t rows = 16;
 
 static unsigned in_words_adj;
 static unsigned out_words_adj;
@@ -46,8 +45,7 @@ static unsigned mem_size;
 
 /* User defined registers */
 /* <<--regs-->> */
-#define CHOLESKY_INPUT_ROWS_REG 0x44
-#define CHOLESKY_OUTPUT_ROWS_REG 0x40
+#define CHOLESKY_ROWS_REG 0x40
 
 static int validate_buf(token_t *out, token_t *gold)
 {
@@ -57,7 +55,7 @@ static int validate_buf(token_t *out, token_t *gold)
         const float ERR_TH = 0.2f;
         float out_fl, gold_fl;
         for (i = 0; i < 1; i++) {
-            for (j = 0; j < output_rows * output_rows; j++) {
+            for (j = 0; j < rows * rows; j++) {
                 out_fl = fx2float(out[j], FX_IL);
                 gold_fl = fx2float(gold[j], FX_IL);
                 if ((fabs(gold[j] - out[j]) / fabs(gold[j])) > ERR_TH) {
@@ -84,11 +82,11 @@ int main(int argc, char * argv[])
 	unsigned errors = 0;
 
 	if (DMA_WORD_PER_BEAT(sizeof(token_t)) == 0) {
-		in_words_adj = input_rows * input_rows;
-		out_words_adj = output_rows * output_rows;
+		in_words_adj = rows * rows;
+		out_words_adj = rows * rows;
 	} else {
-		in_words_adj = round_up(input_rows * input_rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
-		out_words_adj = round_up(output_rows * output_rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
+		in_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
+		out_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
 	}
 	in_len = in_words_adj * (1);
 	out_len = out_words_adj * (1);
@@ -158,8 +156,7 @@ int main(int argc, char * argv[])
 
             // Pass accelerator-specific configuration parameters
             /* <<--regs-config-->> */
-            iowrite32(dev, CHOLESKY_INPUT_ROWS_REG, input_rows);
-            iowrite32(dev, CHOLESKY_OUTPUT_ROWS_REG, output_rows);
+            iowrite32(dev, CHOLESKY_ROWS_REG, rows);
 
             // Flush (customize coherence model here)
             printf("coh: %d\n", coherence);

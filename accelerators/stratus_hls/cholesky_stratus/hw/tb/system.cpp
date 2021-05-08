@@ -23,8 +23,7 @@ void system_t::config_proc()
         conf_info_t config;
         // Custom configuration
         /* <<--params-->> */
-        config.input_rows = input_rows;
-        config.output_rows = output_rows;
+        config.rows = rows;
 
         wait(); conf_info.write(config);
         conf_done.write(true);
@@ -83,11 +82,11 @@ void system_t::load_memory()
 
     // Input data and golden output (aligned to DMA_WIDTH makes your life easier)
 #if (DMA_WORD_PER_BEAT == 0)
-    in_words_adj = input_rows * input_rows;
-    out_words_adj = output_rows * output_rows;
+    in_words_adj = rows * rows;
+    out_words_adj = rows * rows;
 #else
-    in_words_adj = round_up(input_rows * input_rows, DMA_WORD_PER_BEAT);
-    out_words_adj = round_up(output_rows * output_rows, DMA_WORD_PER_BEAT);
+    in_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT);
+    out_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT);
 #endif
 
     in_size = in_words_adj * (1);
@@ -107,13 +106,13 @@ void system_t::load_memory()
 
     in = new float[in_size];
     for (int i = 0; i < 1; i++)
-        for (int j = 0; j < input_rows * input_rows; j++)
+        for (int j = 0; j < rows * rows; j++)
             f>>  in[i * in_words_adj + j] ;
 
     // Compute golden output
     gold = new float[out_size];
         for (int i = 0; i < 1; i++)
-            for (int j = 0; j < output_rows * output_rows; j++)
+            for (int j = 0; j < rows * rows; j++)
                 fo>>  gold[i * out_words_adj + j] ;
 
     for (int i = 0; i < out_size; i++) {
@@ -184,14 +183,14 @@ int system_t::validate()
 	int n=0;
     const float ERR_TH = 0.25f; //20% error
     for (int i = 0; i < 1; i++) {
-        for (int j = 0; j < output_rows * output_rows; j++) {
-            if (j==(output_rows *n)) {
+        for (int j = 0; j < rows * rows; j++) {
+            if (j==(rows *n)) {
 		        cout << "# ########################################  ROW " << (n+1) << "  ############################################# \n";
                 n++;
 			}
             if ((fabs(gold[i* out_words_adj + j] - out[i* out_words_adj +j]) / fabs(gold[i * out_words_adj +j])) > ERR_TH) {
                 errors++;
-                printf("(%d, %d): Out: %.5f, Gold: %.5f\n" , n, j % output_rows, out[i * out_words_adj + j], gold[i*out_words_adj + j]);
+                printf("(%d, %d): Out: %.5f, Gold: %.5f\n" , n, j % rows, out[i * out_words_adj + j], gold[i*out_words_adj + j]);
             }
         }
     }

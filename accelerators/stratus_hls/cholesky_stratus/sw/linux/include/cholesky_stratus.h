@@ -20,8 +20,7 @@
 struct cholesky_stratus_access {
 	struct esp_access esp;
 	/* <<--regs-->> */
-	unsigned input_rows;
-	unsigned output_rows;
+	unsigned rows;
 	unsigned src_offset;
 	unsigned dst_offset;
 };

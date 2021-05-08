@@ -28,7 +28,7 @@ void cholesky::load_input()
 
     // Config
     /* <<--params-->> */
-    int32_t input_rows;
+    int32_t rows;
     {
         HLS_PROTO("load-config");
 
@@ -37,7 +37,7 @@ void cholesky::load_input()
 
         // User-defined config code
         /* <<--local-params-->> */
-        input_rows = config.input_rows;
+        rows = config.rows;
     }
 
     // Load
@@ -52,20 +52,20 @@ void cholesky::load_input()
         bool even_rows;
         uint32_t start_fetching_output = 0;
         uint32_t start_fetching_output_thresh = 3;
-        sc_dt::sc_bv<DMA_WIDTH> rows_bv(input_rows);
+        sc_dt::sc_bv<DMA_WIDTH> rows_bv(rows);
         even_rows = (rows_bv.range(0, 0) == 0);
 
         // Batching
         for (uint16_t b = 0; b < 1; b++)
         {
             wait();
-            uint32_t length = input_rows * input_rows;
+            uint32_t length = rows * rows;
             // Chunking
-            for (int rem = length; rem > 0; rem -= input_rows)
+            for (int rem = length; rem > 0; rem -= rows)
             {
                 wait();
                 // Configure DMA transaction
-                uint32_t len = rem > input_rows ? input_rows : rem;
+                uint32_t len = rem > rows ? rows : rem;
 		        len = (DMA_WORD_PER_BEAT==2 && !even_rows) ? len+1 : len;
                 //ESP_REPORT_INFO("Load offset: %d, adjusted: %d\n", offset, offset / DMA_WORD_PER_BEAT);
                 dma_info_t dma_info(offset / DMA_WORD_PER_BEAT, len / DMA_WORD_PER_BEAT, DMA_SIZE);
@@ -120,12 +120,12 @@ void cholesky::load_input()
 			        fetch_ping = true;
 			        bool skip = false;
                     int fetch_time = start_fetching_output - 2;
-                    fetch_offset = (input_rows * input_rows) + input_rows;
+                    fetch_offset = (rows * rows) + rows;
                     for (int fetch_index = 0; fetch_index < fetch_time+1; fetch_index++) {
                	        wait();
 
 				        if(skip) {
-				            uint32_t fetch_len = input_rows;
+				            uint32_t fetch_len = rows;
                 		    fetch_len = (DMA_WORD_PER_BEAT == 2 && !even_rows) ? fetch_len + 1 : fetch_len;
 
 				            dma_info_t dma_info(fetch_offset / DMA_WORD_PER_BEAT, fetch_len / DMA_WORD_PER_BEAT, DMA_SIZE);
@@ -217,8 +217,7 @@ void cholesky::store_output()
 
     // Config
     /* <<--params-->> */
-    int32_t input_rows;
-    int32_t output_rows;
+    int32_t rows;
     {
         HLS_PROTO("store-config");
 
@@ -227,8 +226,8 @@ void cholesky::store_output()
 
         // User-defined config code
         /* <<--local-params-->> */
-        input_rows = config.input_rows;
-        output_rows = config.output_rows;
+        rows = config.rows;
+        rows = config.rows;
     }
 
     // Store
@@ -239,29 +238,29 @@ void cholesky::store_output()
         bool ping = true;
         int dma_rem_data;
         bool even_rows;
-        sc_dt::sc_bv<DMA_WIDTH> rows_bv(input_rows);
+        sc_dt::sc_bv<DMA_WIDTH> rows_bv(rows);
         even_rows = (rows_bv.range(0, 0) == 0);
 
-        uint32_t store_offset = (input_rows * input_rows) * 1;
+        uint32_t store_offset = (rows * rows) * 1;
         uint32_t offset = (DMA_WORD_PER_BEAT == 2 && !even_rows) ?  store_offset + 1 : store_offset;
 
         wait();
         // Batching
         for (uint16_t b = 0; b < 1; b++)
         {
-            HLS_BREAK_DEP(plm_out_ping);
-            HLS_BREAK_DEP(plm_out_pong);
+            //HLS_BREAK_DEP(plm_out_ping);
+            //HLS_BREAK_DEP(plm_out_pong);
             wait();
-            uint32_t length = output_rows * output_rows;
+            uint32_t length = rows * rows;
 
             // Chunking
-            for (int rem = length; rem > 0; rem -= output_rows)
+            for (int rem = length; rem > 0; rem -= rows)
             {
 
                 this->store_compute_handshake();
 
                 // Configure DMA transaction
-                uint32_t len = rem > output_rows ? output_rows : rem;
+                uint32_t len = rem > rows ? rows : rem;
 		        len = (DMA_WORD_PER_BEAT==2 && !even_rows) ? len+1 : len;
                 //ESP_REPORT_INFO("Store offset: %d, adjusted: %d\n", offset, offset / DMA_WORD_PER_BEAT);
                 dma_info_t dma_info(offset / DMA_WORD_PER_BEAT, len / DMA_WORD_PER_BEAT, DMA_SIZE);
@@ -350,8 +349,7 @@ void cholesky::compute_kernel()
 
     // Config
     /* <<--params-->> */
-    int32_t input_rows;
-    int32_t output_rows;
+    int32_t rows;
     {
         HLS_PROTO("compute-config");
 
@@ -360,8 +358,7 @@ void cholesky::compute_kernel()
 
         // User-defined config code
         /* <<--local-params-->> */
-        input_rows = config.input_rows;
-        output_rows = config.output_rows;
+        rows = config.rows;
     }
 
     // Compute
@@ -378,14 +375,14 @@ void cholesky::compute_kernel()
     uint32_t start_fetching_output_thresh = 3;
     {
         for (uint16_t b = 0; b < 1; b++) {
-            uint32_t in_length = input_rows * input_rows;
+            uint32_t in_length = rows * rows;
 	        int i = 0;
             int fill;
 
-            for (int in_rem = in_length; in_rem > 0; in_rem -= input_rows) {
-                HLS_BREAK_DEP(plm_temp_ping);
-                HLS_BREAK_DEP(plm_temp_pong);
-                HLS_BREAK_DEP(plm_diag);
+            for (int in_rem = in_length; in_rem > 0; in_rem -= rows) {
+                //HLS_BREAK_DEP(plm_temp_ping);
+                //HLS_BREAK_DEP(plm_temp_pong);
+                //HLS_BREAK_DEP(plm_diag);
 
                 if(i < start_fetching_output_thresh)
                     this->compute_load_handshake();
@@ -472,13 +469,13 @@ void cholesky::compute_kernel()
                         fetch_out_ping= !fetch_out_ping;
                 } //for(j)
 
-                for (int z =(i+1) ; z < input_rows ; z++) {
+                for (int z =(i+1) ; z < rows ; z++) {
                     if(ping)
                         plm_out_ping[z] = 0;
                     else
                         plm_out_pong[z] = 0;
                 }
-
+                wait();
                 this->compute_store_handshake();
                 ping = !ping;
 		        i++;

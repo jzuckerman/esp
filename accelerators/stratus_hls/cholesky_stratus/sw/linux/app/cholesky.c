@@ -26,7 +26,7 @@ static int validate_buffer(token_t *out, token_t *gold)
     const float ERR_TH = 0.2f;
     float out_fl, gold_fl;
     for (i = 0; i < 1; i++)
-        for (j = 0; j < output_rows * output_rows; j++) {
+        for (j = 0; j < rows * rows; j++) {
             out_fl = fx2float(out[j], FX_IL);
             gold_fl = fx2float(gold[j], FX_IL);
             if ((fabs(gold_fl - out_fl) / fabs(gold_fl)) > ERR_TH) {
@@ -42,11 +42,11 @@ static int validate_buffer(token_t *out, token_t *gold)
 static void init_parameters()
 {
 	if (DMA_WORD_PER_BEAT(sizeof(token_t)) == 0) {
-		in_words_adj = input_rows * input_rows;
-		out_words_adj = output_rows * output_rows;
+		in_words_adj = rows * rows;
+		out_words_adj = rows * rows;
 	} else {
-		in_words_adj = round_up(input_rows * input_rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
-		out_words_adj = round_up(output_rows * output_rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
+		in_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
+		out_words_adj = round_up(rows * rows, DMA_WORD_PER_BEAT(sizeof(token_t)));
 	}
 	in_len = in_words_adj * (1);
 	out_len =  out_words_adj * (1);
@@ -78,17 +78,14 @@ int main(int argc, char **argv)
     }
 
     if (argc >= 3) {
-        int rows = atoi(argv[2]);
+        rows = atoi(argv[2]);
         if (rows <= 0) {
             printf("usage: ./cholesky_stratus.exe [coh] [rows]\n");
             printf("coh - non-coh | llc-coh | coh-dma | full-coh\n");
             printf("if rows is supplied, random data is used, with no validation\n");
             return 1;
         }
-        input_rows = rows;
-        output_rows = rows;
-        cholesky_cfg_000[0].input_rows = rows;
-        cholesky_cfg_000[0].output_rows = rows;
+        cholesky_cfg_000[0].rows = rows;
     }
 	token_t *gold;
 	token_t *buf;
@@ -105,14 +102,13 @@ int main(int argc, char **argv)
 
     #include "data.h"
     if (argc >= 3) {
-        for (int i = 0; i < cholesky_cfg_000[0].input_rows * cholesky_cfg_000[0].input_rows; i++)
+        for (int i = 1; i < cholesky_cfg_000[0].rows * cholesky_cfg_000[0].rows; i++)
             buf[i] = rand();
     }
     printf("\n====== %s ======\n\n", cfg_000[0].devname);
 
     /* <<--print-params-->> */
-	printf("  .input_rows = %d\n", input_rows);
-	printf("  .output_rows = %d\n", output_rows);
+	printf("  .rows = %d\n", rows);
 	printf("\n  ** START **\n");
 
 	esp_run(cfg_000, NACC);
