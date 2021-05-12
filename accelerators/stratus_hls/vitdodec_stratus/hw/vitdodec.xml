@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sld>
-  <accelerator name="vitdodec" desc="Accelerator VITDODEC" data_size="4" device_id="030" hls_tool="stratus_hls">
+  <accelerator name="vitdodec" desc="Accelerator VITDODEC" data_size="128" device_id="030" hls_tool="stratus_hls">
+    <param name="nbatches" desc="nbatches" />
     <param name="data_bits" desc="data_bits" />
     <param name="ntraceback" desc="ntraceback" />
     <param name="cbps" desc="cbps" />

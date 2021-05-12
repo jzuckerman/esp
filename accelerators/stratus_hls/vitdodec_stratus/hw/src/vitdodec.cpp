@@ -28,6 +28,7 @@ void vitdodec::load_input()
 
     // Config
     /* <<--params-->> */
+    int32_t nbatches;
     int32_t cbps;
     int32_t ntraceback;
     int32_t data_bits;
@@ -39,6 +40,7 @@ void vitdodec::load_input()
 
         // User-defined config code
         /* <<--local-params-->> */
+        nbatches = config.nbatches;
         cbps = config.cbps;
         ntraceback = config.ntraceback;
         data_bits = config.data_bits;
@@ -52,14 +54,17 @@ void vitdodec::load_input()
 
         wait();
         // Batching
-        for (uint16_t b = 0; b < 1; b++)
+        for (uint16_t b = 0; b < nbatches; b++)
         {
             wait();
+            this->load_compute_handshake();
+
 #if (DMA_WORD_PER_BEAT == 0)
             uint32_t length = 24852;
 #else
             uint32_t length = round_up(24852, DMA_WORD_PER_BEAT);
 #endif
+            offset = length * b;
             // Chunking
             for (int rem = length; rem > 0; rem -= PLM_IN_WORD)
             {
@@ -183,6 +188,7 @@ void vitdodec::store_output()
 
     // Config
     /* <<--params-->> */
+    int32_t nbatches;
     int32_t cbps;
     int32_t ntraceback;
     int32_t data_bits;
@@ -194,6 +200,7 @@ void vitdodec::store_output()
 
         // User-defined config code
         /* <<--local-params-->> */
+        nbatches = config.nbatches;
         cbps = config.cbps;
         ntraceback = config.ntraceback;
         data_bits = config.data_bits;
@@ -204,22 +211,24 @@ void vitdodec::store_output()
         HLS_PROTO("store-dma");
         bool ping = true;
 #if (DMA_WORD_PER_BEAT == 0)
-        uint32_t store_offset = (24852) * 1;
+        uint32_t store_offset = (24852) * nbatches;
 #else
-        uint32_t store_offset = round_up(24852, DMA_WORD_PER_BEAT) * 1;
+        uint32_t store_offset = round_up(24852, DMA_WORD_PER_BEAT) * nbatches;
 #endif
         uint32_t offset = store_offset;
 
         wait();
         // Batching
-        for (uint16_t b = 0; b < 1; b++)
+        for (uint16_t b = 0; b < nbatches; b++)
         {
+            this->store_compute_handshake();
             wait();
 #if (DMA_WORD_PER_BEAT == 0)
             uint32_t length = 18585;
 #else
             uint32_t length = round_up(18585, DMA_WORD_PER_BEAT);
 #endif
+            offset = store_offset + length * b;
             // Chunking
             for (int rem = length; rem > 0; rem -= PLM_OUT_WORD)
             {
@@ -309,6 +318,7 @@ void vitdodec::compute_kernel()
 
     // Config
     /* <<--params-->> */
+    int32_t nbatches;
     int32_t cbps;
     int32_t ntraceback;
     int32_t data_bits;
@@ -320,6 +330,7 @@ void vitdodec::compute_kernel()
 
         // User-defined config code
         /* <<--local-params-->> */
+        nbatches = config.nbatches;
         cbps = config.cbps;
         ntraceback = config.ntraceback;
         data_bits = config.data_bits;
@@ -329,11 +340,13 @@ void vitdodec::compute_kernel()
     // Compute
     bool ping = true;
     {
-        for (uint16_t b = 0; b < 1; b++)
+        for (uint16_t b = 0; b < nbatches; b++)
         {
             uint32_t in_length = 24852;
             uint32_t out_length = 18585;
             // int out_rem = out_length;
+            this->compute_load_handshake();
+            this->compute_store_handshake();
 
             // for (int in_rem = in_length; in_rem > 0; in_rem -= PLM_IN_WORD)
             {

@@ -103,4 +103,5 @@ void esp_run(esp_thread_info_t cfg[], unsigned nacc);
 void esp_free(void *buf);
 void set_learning_params(float new_epsilon, float new_alpha, float new_discount);
 void read_ddr_accesses(unsigned int *ddr_accesses);
+char *coh_to_str(unsigned coherence);
 #endif /* __ESPLIB_H__ */

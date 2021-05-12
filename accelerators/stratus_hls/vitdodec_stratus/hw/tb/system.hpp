@@ -13,7 +13,7 @@
 
 #include "esp_templates.hpp"
 
-const size_t MEM_SIZE = 43448 / (DMA_WIDTH/8);
+const size_t MEM_SIZE =  10 * 43448 / (DMA_WIDTH/8);
 
 #include "core/systems/esp_system.hpp"
 
@@ -56,6 +56,7 @@ public:
         acc->debug(debug);
 
         /* <<--params-default-->> */
+        nbatches = 10;
         cbps = 48;
         ntraceback = 5;
         data_bits = 288;
@@ -77,12 +78,13 @@ public:
 
     // Accelerator-specific data
     /* <<--params-->> */
+    int32_t nbatches;
     int32_t cbps;
     int32_t ntraceback;
     int32_t data_bits;
 
     uint32_t in_words_adj;
-    uint32_t out_words_adj;
+    uint32_t out_words_adj, out_words_adj_batch;
     uint32_t in_size;
     uint32_t out_size;
     int8_t *in;

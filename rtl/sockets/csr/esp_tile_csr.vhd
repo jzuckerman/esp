@@ -138,7 +138,7 @@ architecture rtl of esp_tile_csr is
   tile_config <= config_r;
   csr_addr <= conv_integer(apbi.paddr(6 downto 2));
 
-  rd_registers : process(apbi, count_value, ctrl_rst, window_size, window_count, config_r, csr_addr)
+  rd_registers : process(apbi, count, ctrl_rst, window_size, window_count, config_r, csr_addr)
     --TODO 
     variable addr : integer range 0 to 127;
   begin 
@@ -189,7 +189,7 @@ architecture rtl of esp_tile_csr is
       elsif addr = 3 then
         readdata <= window_count(2*REGISTER_WIDTH-1 downto REGISTER_WIDTH);
       elsif addr < MONITOR_REG_COUNT + MONITOR_APB_OFFSET then 
-        readdata <= count_value(addr - MONITOR_APB_OFFSET);
+        readdata <= count(addr - MONITOR_APB_OFFSET);
       end if;
     end if;
   end process rd_registers;

@@ -13,9 +13,10 @@
 #define DRV_NAME	"vitdodec_stratus"
 
 /* <<--regs-->> */
-#define VITDODEC_CBPS_REG 0x48
-#define VITDODEC_NTRACEBACK_REG 0x44
-#define VITDODEC_DATA_BITS_REG 0x40
+#define VITDODEC_NBATCHES_REG 0x40
+#define VITDODEC_CBPS_REG 0x4C
+#define VITDODEC_NTRACEBACK_REG 0x48
+#define VITDODEC_DATA_BITS_REG 0x44
 
 struct vitdodec_stratus_device {
 	struct esp_device esp;
@@ -48,6 +49,7 @@ static void vitdodec_prep_xfer(struct esp_device *esp, void *arg)
 	struct vitdodec_stratus_access *a = arg;
 
 	/* <<--regs-config-->> */
+	iowrite32be(a->nbatches, esp->iomem + VITDODEC_NBATCHES_REG);
 	iowrite32be(a->cbps, esp->iomem + VITDODEC_CBPS_REG);
 	iowrite32be(a->ntraceback, esp->iomem + VITDODEC_NTRACEBACK_REG);
 	iowrite32be(a->data_bits, esp->iomem + VITDODEC_DATA_BITS_REG);

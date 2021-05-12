@@ -23,6 +23,7 @@ static unsigned DMA_WORD_PER_BEAT(unsigned _st)
 #define DEV_NAME "sld,vitdodec_stratus"
 
 /* <<--params-->> */
+int32_t nbatches = 96;
 const int32_t cbps = 48;
 const int32_t ntraceback = 5;
 const int32_t data_bits = 288;
@@ -45,9 +46,10 @@ static unsigned mem_size;
 
 /* User defined registers */
 /* <<--regs-->> */
-#define VITDODEC_CBPS_REG 0x48
-#define VITDODEC_NTRACEBACK_REG 0x44
-#define VITDODEC_DATA_BITS_REG 0x40
+#define VITDODEC_NBATCHES_REG 0x40
+#define VITDODEC_CBPS_REG 0x4C
+#define VITDODEC_NTRACEBACK_REG 0x48
+#define VITDODEC_DATA_BITS_REG 0x44
 
 /* TEST-Specific Inputs */
 static const unsigned char PARTAB[256] = {
@@ -92,8 +94,8 @@ static int validate_buf(token_t *out, token_t *gold)
 	int j;
 	unsigned errors = 0;
 
-	for (i = 0; i < 1; i++)
-		for (j = 0; j < 18585; j++)
+	for (i = 0; i < nbatches; i++)
+		for (j = 0; j < out_words_adj; j++)
 			if (gold[i * out_words_adj + j] != out[i * out_words_adj + j])
 				errors++;
 
@@ -118,9 +120,13 @@ static void init_buf (token_t *in, token_t * gold)
 {
 	int i;
 	int j;
-	int imi = 0;
+	int b;
+    int imi = 0;
 
 	unsigned char depunct_ptn[6] = {1, 1, 0, 0, 0, 0}; /* PATTERN_1_2 Extended with zeros */
+
+    for (b = 0; b < nbatches; b++) { 
+        imi = b * in_words_adj;
 
         int polys[2] = { 0x6d, 0x4f };
         for(int i=0; i < 32; i++) {
@@ -141,11 +147,12 @@ static void init_buf (token_t *in, token_t * gold)
         in[imi++] = 0;
         in[imi++] = 0;
 
-        for (int j = imi; j < in_size; j++) {
+        for (int j = imi; j < in_words_adj; j++) {
 	    int bval = irand()  & 0x01;
             /* printf("Setting up in[%d] = %d\n", j, bval); */
             in[j] = bval;
         }
+    }
 
 #if(0)
 	{
@@ -173,13 +180,14 @@ static void init_buf (token_t *in, token_t * gold)
         }
 #endif
 	/* Pre-zero the output memeory */
-	for (i = 0; i < 1; i++)
-		for (j = 0; j < 18585; j++)
+	for (i = 0; i < nbatches; i++)
+		for (j = 0; j < out_words_adj; j++)
 			gold[i * out_words_adj + j] = (token_t) 0;
 
 	/* Compute the gold output in software! */
-	printf("Computing Gold output\n");
-	do_decoding(data_bits, cbps, ntraceback, (unsigned char *)in, (unsigned char*)gold);
+    printf("Computing Gold output\n");
+	for (b = 0; b < nbatches; b++)
+        do_decoding(data_bits, cbps, ntraceback, (unsigned char *)in + b*in_words_adj, (unsigned char*)gold + b*out_words_adj);
 
 	/* Re-set the input memory ? */
 
@@ -223,16 +231,20 @@ int main(int argc, char * argv[])
 	token_t *mem;
 	token_t *gold;
 	unsigned errors = 0;
+    unsigned coherence;
 
-	if (DMA_WORD_PER_BEAT(sizeof(token_t)) == 0) {
+	if (argc == 2)
+        nbatches = argv[1];
+    
+    if (DMA_WORD_PER_BEAT(sizeof(token_t)) == 0) {
 		in_words_adj = 24852;
 		out_words_adj = 18585;
 	} else {
 		in_words_adj = round_up(24852, DMA_WORD_PER_BEAT(sizeof(token_t)));
 		out_words_adj = round_up(18585, DMA_WORD_PER_BEAT(sizeof(token_t)));
 	}
-	in_len = in_words_adj * (1);
-	out_len = out_words_adj * (1);
+	in_len = in_words_adj * (nbatches);
+	out_len = out_words_adj * (nbatches);
 	in_size = in_len * sizeof(token_t);
 	out_size = out_len * sizeof(token_t);
 	out_offset  = in_len;
@@ -273,55 +285,57 @@ int main(int argc, char * argv[])
 			ptable[i] = (unsigned *) &mem[i * (CHUNK_SIZE / sizeof(token_t))];
 		printf("  ptable = %p\n", ptable);
 		printf("  nchunk = %lu\n", NCHUNK(mem_size));
+        
+        for (coherence = ACC_COH_NONE; coherence <= ACC_COH_FULL; coherence++) {
+            printf("  Generate input...\n");
+            init_buf(mem, gold);
 
-		printf("  Generate input...\n");
-		init_buf(mem, gold);
+            // Pass common configuration parameters
+           
+            iowrite32(dev, SELECT_REG, ioread32(dev, DEVID_REG));
+            iowrite32(dev, COHERENCE_REG, coherence);
 
-		// Pass common configuration parameters
+            iowrite32(dev, PT_ADDRESS_REG, (unsigned long) ptable);
 
-		iowrite32(dev, SELECT_REG, ioread32(dev, DEVID_REG));
-		iowrite32(dev, COHERENCE_REG, ACC_COH_NONE);
+            iowrite32(dev, PT_NCHUNK_REG, NCHUNK(mem_size));
+            iowrite32(dev, PT_SHIFT_REG, CHUNK_SHIFT);
 
-		iowrite32(dev, PT_ADDRESS_REG, (unsigned long) ptable);
+            // Use the following if input and output data are not allocated at the default offsets
+            iowrite32(dev, SRC_OFFSET_REG, 0x0);
+            iowrite32(dev, DST_OFFSET_REG, 0x0);
 
-		iowrite32(dev, PT_NCHUNK_REG, NCHUNK(mem_size));
-		iowrite32(dev, PT_SHIFT_REG, CHUNK_SHIFT);
+            // Pass accelerator-specific configuration parameters
+            /* <<--regs-config-->> */
+            iowrite32(dev, VITDODEC_NBATCHES_REG, nbatches);
+            iowrite32(dev, VITDODEC_CBPS_REG, cbps);
+            iowrite32(dev, VITDODEC_NTRACEBACK_REG, ntraceback);
+            iowrite32(dev, VITDODEC_DATA_BITS_REG, data_bits);
 
-		// Use the following if input and output data are not allocated at the default offsets
-		iowrite32(dev, SRC_OFFSET_REG, 0x0);
-		iowrite32(dev, DST_OFFSET_REG, 0x0);
+            // Flush (customize coherence model here)
+            esp_flush(coherence);
 
-		// Pass accelerator-specific configuration parameters
-		/* <<--regs-config-->> */
-		iowrite32(dev, VITDODEC_CBPS_REG, cbps);
-		iowrite32(dev, VITDODEC_NTRACEBACK_REG, ntraceback);
-		iowrite32(dev, VITDODEC_DATA_BITS_REG, data_bits);
+            // Start accelerators
+            printf("  Start...\n");
+            iowrite32(dev, CMD_REG, CMD_MASK_START);
 
-		// Flush (customize coherence model here)
-		esp_flush(ACC_COH_NONE);
+            // Wait for completion
+            done = 0;
+            while (!done) {
+                done = ioread32(dev, STATUS_REG);
+                done &= STATUS_MASK_DONE;
+            }
+            iowrite32(dev, CMD_REG, 0x0);
 
-		// Start accelerators
-		printf("  Start...\n");
-		iowrite32(dev, CMD_REG, CMD_MASK_START);
+            printf("  Done\n");
+            printf("  validating...\n");
 
-		// Wait for completion
-		done = 0;
-		while (!done) {
-			done = ioread32(dev, STATUS_REG);
-			done &= STATUS_MASK_DONE;
-		}
-		iowrite32(dev, CMD_REG, 0x0);
-
-		printf("  Done\n");
-		printf("  validating...\n");
-
-		/* Validation */
-		errors = validate_buf(&mem[out_offset], gold);
-		if (errors)
-			printf("  ... FAIL\n");
-		else
-			printf("  ... PASS\n");
-
+            /* Validation */
+            errors = validate_buf(&mem[out_offset], gold);
+            if (errors)
+                printf("  ... FAIL\n");
+            else
+                printf("  ... PASS\n");
+        }
 		aligned_free(ptable);
 		aligned_free(mem);
 		aligned_free(gold);

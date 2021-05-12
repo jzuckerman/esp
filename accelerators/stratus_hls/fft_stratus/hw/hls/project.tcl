@@ -49,11 +49,6 @@ if {$TECH eq "cmos32soi"} {
     set SIM_CLOCK_PERIOD 1000.0
     set_attr default_input_delay      100.0
 }
-if {$TECH eq "gf12"} {
-    set CLOCK_PERIOD 750.0
-    set SIM_CLOCK_PERIOD 2000.0
-    set_attr default_input_delay      100.0
-}
 set_attr clock_period $CLOCK_PERIOD
 
 
@@ -73,7 +68,7 @@ define_system_module tb ../tb/fft_test.cpp ../tb/system.cpp ../tb/sc_main.cpp
 ######################################################################
 set DEFAULT_ARGV ""
 
-set FX_IL "-DFX32_IL=14 -DFX64_IL=42"
+set FX_IL "-DFX32_IL=12 -DFX64_IL=42"
 
 foreach dma [list 32 64] {
     foreach fx [list 32 64] {

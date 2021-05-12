@@ -9,11 +9,13 @@
 typedef int8_t token_t;
 
 /* <<--params-def-->> */
+#define NBATCHES 1
 #define CBPS 48
 #define NTRACEBACK 5
 #define DATA_BITS 288
 
 /* <<--params-->> */
+int32_t nbatches = NBATCHES;
 const int32_t cbps = CBPS;
 const int32_t ntraceback = NTRACEBACK;
 const int32_t data_bits = DATA_BITS;
@@ -23,7 +25,8 @@ const int32_t data_bits = DATA_BITS;
 struct vitdodec_stratus_access vitdodec_cfg_000[] = {
 	{
 		/* <<--descriptor-->> */
-		.cbps = CBPS,
+		.nbatches = NBATCHES,
+        .cbps = CBPS,
 		.ntraceback = NTRACEBACK,
 		.data_bits = DATA_BITS,
 		.src_offset = 0,
@@ -32,7 +35,9 @@ struct vitdodec_stratus_access vitdodec_cfg_000[] = {
 		.esp.p2p_store = 0,
 		.esp.p2p_nsrcs = 0,
 		.esp.p2p_srcs = {"", "", "", ""},
-	}
+	    .esp.devid = 1, 
+        .esp.learn = 0, 
+    }
 };
 
 esp_thread_info_t cfg_000[] = {
@@ -41,7 +46,7 @@ esp_thread_info_t cfg_000[] = {
 		.devname = "vitdodec_stratus.0",
 		.ioctl_req = VITDODEC_STRATUS_IOC_ACCESS,
 		.esp_desc = &(vitdodec_cfg_000[0].esp),
-	}
+    }
 };
 
 #endif /* __ESP_CFG_000_H__ */

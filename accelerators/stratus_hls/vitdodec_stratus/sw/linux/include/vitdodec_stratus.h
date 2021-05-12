@@ -20,6 +20,7 @@
 struct vitdodec_stratus_access {
 	struct esp_access esp;
 	/* <<--regs-->> */
+	unsigned nbatches;
 	unsigned cbps;
 	unsigned ntraceback;
 	unsigned data_bits;

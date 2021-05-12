@@ -37,6 +37,8 @@ struct spmv_stratus_access {
 	// 'True' is the vector size fits the vector PLM and if it should be stored there
 	// Set to false if ncols > 8192
 	unsigned int vect_fits_plm;
+    unsigned int src_offset;
+    unsigned int dst_offset;
 };
 
 #define SPMV_STRATUS_IOC_ACCESS	_IOW ('S', 0, struct spmv_stratus_access)

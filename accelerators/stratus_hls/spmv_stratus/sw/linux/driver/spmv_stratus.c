@@ -56,6 +56,8 @@ static void spmv_prep_xfer(struct esp_device *esp, void *arg)
 	iowrite32be(a->mtx_len, esp->iomem + SPMV_MTX_LEN_REG);
 	iowrite32be(a->vals_plm_size, esp->iomem + SPMV_VALS_PLM_SIZE_REG);
 	iowrite32be(a->vect_fits_plm, esp->iomem + SPMV_VECT_FITS_PLM_REG);
+    iowrite32be(a->src_offset, esp->iomem + SRC_OFFSET_REG);
+    iowrite32be(a->dst_offset, esp->iomem + DST_OFFSET_REG);
 }
 
 static bool spmv_xfer_input_ok(struct esp_device *esp, void *arg)

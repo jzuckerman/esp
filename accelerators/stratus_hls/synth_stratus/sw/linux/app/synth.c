@@ -271,7 +271,7 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
     }
 }
 
-static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, struct synth_stratus_access ***synth_cfg, int nthreads, int alloc_mode, enum alloc_effort alloc, uint32_t **buffers, int phase, struct contig_alloc_params *alloc_params){
+static void alloc_phase(accelerator_thread_info_t **thread_info, esp_thread_info_t ***cfg, struct synth_stratus_access ***synth_cfg, int nthreads, int alloc_mode, enum contig_alloc_policy alloc, uint32_t **buffers, int phase, struct contig_alloc_params *alloc_params){
        
     //set policy
     for (int i = 0; i < nthreads; i++){
@@ -554,7 +554,7 @@ int main (int argc, char** argv)
     }    
     
     enum accelerator_coherence coherence = ACC_COH_NONE; 
-    enum alloc_effort alloc = CONTIG_ALLOC_PREFERRED; 
+    enum contig_alloc_policy alloc = CONTIG_ALLOC_PREFERRED; 
     int coherence_mode, alloc_mode;
     
     if (!strcmp(argv[2], "none")){

@@ -87,6 +87,7 @@ void system_t::config_proc()
         conf_info_t config;
         // Custom configuration
         /* <<--params-->> */
+        config.nbatches = nbatches;
         config.cbps = cbps;
         config.ntraceback = ntraceback;
         config.data_bits = data_bits;
@@ -145,18 +146,19 @@ void system_t::load_memory()
         sc_stop();
     }
 #endif
-
+    const int32_t batch_in_size = 24852;
+    const int32_t batch_out_size = 18585;
     // Input data and golden output (aligned to DMA_WIDTH makes your life easier)
 #if (DMA_WORD_PER_BEAT == 0)
-    in_words_adj = 24852;
-    out_words_adj = 18585;
+    in_words_adj = batch_in_size;
+    out_words_adj = batch_out_size;
 #else
-    in_words_adj = round_up(24852, DMA_WORD_PER_BEAT);
-    out_words_adj = round_up(18585, DMA_WORD_PER_BEAT);
+    in_words_adj = round_up(batch_in_size, DMA_WORD_PER_BEAT);
+    out_words_adj = round_up(batch_out_size, DMA_WORD_PER_BEAT);
 #endif
 
-    in_size = in_words_adj * (1);
-    out_size = out_words_adj * (1);
+    in_size = in_words_adj * (nbatches);
+    out_size = out_words_adj * (nbatches);
 
     ESP_REPORT_INFO("in_size = %u  and out_size = %u", in_size, out_size);
 
@@ -171,10 +173,11 @@ void system_t::load_memory()
 
     int mi = 0;
     unsigned char depunct_ptn[6] = {1, 1, 0, 0, 0, 0}; // PATTERN_1_2 Extended with zeros
+    int b;
 
     ESP_REPORT_INFO("Setting up goldMem\n");
-    {
-        int imi = 0;
+    for (b = 0; b < nbatches; b++) {
+        int imi = b * in_words_adj;
         gold_in = &goldMem[imi]; // new int8_t[in_size];
         int polys[2] = { 0x6d, 0x4f };
         for(int i=0; i < 32; i++) {
@@ -182,11 +185,11 @@ void system_t::load_memory()
             goldMem[imi+32] = (polys[1] < 0) ^ PARTAB[(2*i) & abs(polys[1])] ? 1 : 0;
             imi++;
         }
-        if (imi != 32) { ESP_REPORT_INFO("ERROR : imi = %u and should be 32\n", imi); }
+        if (imi % batch_in_size != 32) { ESP_REPORT_INFO("ERROR : imi = %u and should be 32\n", imi); }
         imi += 32;
 
         //ESP_REPORT_INFO("Set up brtab27\n");
-        if (imi != 64) { ESP_REPORT_INFO("ERROR : imi = %u and should be 64\n", imi); }
+        if (imi % batch_in_size != 64) { ESP_REPORT_INFO("ERROR : imi = %u and should be 64\n", imi); }
         // imi = 64;
         for (int ti = 0; ti < 6; ti ++) {
             goldMem[imi++] = depunct_ptn[ti];
@@ -194,11 +197,11 @@ void system_t::load_memory()
         //ESP_REPORT_INFO("Set up depunct\n");
         goldMem[imi++] = 0;
         goldMem[imi++] = 0;
-        if (imi != 72) { ESP_REPORT_INFO("ERROR : imi = %u and should be 72\n", imi); }
+        if (imi % batch_in_size != 72) { ESP_REPORT_INFO("ERROR : imi = %u and should be 72\n", imi); }
         // imi = 72
         //ESP_REPORT_INFO("Set up padding\n");
 
-        for (int j = imi; j < in_size; j++) {
+        for (int j = imi; j < batch_in_size; j++) {
             int bval = gen_random_bit(); // & 0x01;
             //ESP_REPORT_INFO("Setting up goldMem[%d] = %d\n", j, bval);
             goldMem[j] = bval;
@@ -291,7 +294,8 @@ void system_t::load_memory()
 #endif
     // Compute the gold output in software!
     ESP_REPORT_INFO("Computing Gold output\n");
-    do_decoding(data_bits, cbps, ntraceback, (unsigned char *)goldMem, (unsigned char*)gold);
+    for (b = 0; b < nbatches; b++)
+        do_decoding(data_bits, cbps, ntraceback, (unsigned char *)goldMem + b*in_words_adj, (unsigned char*)gold + b*out_words_adj);
 
 #if(0)
     {
@@ -344,8 +348,10 @@ void system_t::dump_memory()
 #else
     offset = offset / DMA_WORD_PER_BEAT;
     for (int i = 0; i < out_size / DMA_WORD_PER_BEAT; i++)
-        for (int j = 0; j < DMA_WORD_PER_BEAT; j++)
+        for (int j = 0; j < DMA_WORD_PER_BEAT; j++) {
             out[i * DMA_WORD_PER_BEAT + j] = mem[offset + i].range((j + 1) * DATA_WIDTH - 1, j * DATA_WIDTH).to_int64();
+            //ESP_REPORT_INFO("out[%d] = %d, gold[%d] = %d\n", i * DMA_WORD_PER_BEAT + j, out[i * DMA_WORD_PER_BEAT + j],  i * DMA_WORD_PER_BEAT + j, gold[i * DMA_WORD_PER_BEAT + j]);
+        }
 #endif
 
     ESP_REPORT_INFO("dump memory completed");
@@ -355,14 +361,15 @@ int system_t::validate()
 {
     // Check for mismatches
     uint32_t errors = 0;
+    const int32_t batch_out_size = 18585;
 
-    for (int i = 0; i < 1; i++)
-        for (int j = 0; j < 18585; j++)
+    for (int i = 0; i < nbatches; i++)
+        for (int j = 0; j < out_words_adj; j++)
             if (gold[i * out_words_adj + j] != out[i * out_words_adj + j]) {
-                if (errors < 9) { 
-                    ESP_REPORT_INFO("  Validation Mismatch : [%d] gold vs out = %d vs %d  %p - %x vs %p - %x", j, gold[j], out[j], gold, (&(gold[j]) - gold), out, (&out[j] - out));
-                }
-                errors++;
+                //if (errors < 9) { 
+                    ESP_REPORT_INFO("  Validation Mismatch : batch %d [%d] gold vs out = %d vs %d  %p - %x vs %p - %x", i, j, gold[i * out_words_adj + j], out[i * out_words_adj + j], gold, (&(gold[j]) - gold), out, (&out[j] - out));
+                //}
+              errors++;
             }
 
     delete [] in;

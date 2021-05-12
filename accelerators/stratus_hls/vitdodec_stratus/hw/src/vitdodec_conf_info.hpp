@@ -19,6 +19,7 @@ public:
     conf_info_t()
     {
         /* <<--ctor-->> */
+        this->nbatches = 1;
         this->cbps = 48;
         this->ntraceback = 5;
         this->data_bits = 288;
@@ -26,12 +27,14 @@ public:
 
     conf_info_t(
         /* <<--ctor-args-->> */
+        int32_t nbatches,
         int32_t cbps, 
         int32_t ntraceback, 
         int32_t data_bits
         )
     {
         /* <<--ctor-custom-->> */
+        this->nbatches = nbatches;
         this->cbps = cbps;
         this->ntraceback = ntraceback;
         this->data_bits = data_bits;
@@ -41,6 +44,7 @@ public:
     inline bool operator==(const conf_info_t &rhs) const
     {
         /* <<--eq-->> */
+        if (nbatches != rhs.nbatches) return false;
         if (cbps != rhs.cbps) return false;
         if (ntraceback != rhs.ntraceback) return false;
         if (data_bits != rhs.data_bits) return false;
@@ -51,6 +55,7 @@ public:
     inline conf_info_t& operator=(const conf_info_t& other)
     {
         /* <<--assign-->> */
+        nbatches = other.nbatches;
         cbps = other.cbps;
         ntraceback = other.ntraceback;
         data_bits = other.data_bits;
@@ -66,6 +71,7 @@ public:
     {
         os << "{";
         /* <<--print-->> */
+        os << "nbatches = " << conf_info.nbatches << ", ";
         os << "cbps = " << conf_info.cbps << ", ";
         os << "ntraceback = " << conf_info.ntraceback << ", ";
         os << "data_bits = " << conf_info.data_bits << "";
@@ -74,6 +80,7 @@ public:
     }
 
         /* <<--params-->> */
+        int32_t nbatches;
         int32_t cbps;
         int32_t ntraceback;
         int32_t data_bits;
