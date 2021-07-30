@@ -45,8 +45,8 @@ TOP_VLOG_SIM_SRCS +=
 
 
 ### Xilinx Vivado hw_server ###
-FPGA_HOST ?= espgate
-XIL_HW_SERVER_PORT ?= 3125
+FPGA_HOST ?= localhost
+XIL_HW_SERVER_PORT ?= 3121
 
 
 # IP address or host name of the host connected to the FPGA
