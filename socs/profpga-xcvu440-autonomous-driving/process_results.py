@@ -2,19 +2,18 @@
 import sys
 from scipy.stats import gmean
 
-if len(sys.argv) < 4:
-    print("Usage: python process_train.py file phases iters")
+if len(sys.argv) < 2:
+    print("Usage: python process_results.py file")
     exit()
 
-phases=int(sys.argv[2])
-iters=int(sys.argv[3])
+phases=36
 
 file=sys.argv[1]
 
 with open(file, 'r') as f:
     lines = f.readlines()
 
-outname = "results.csv"
+outname = "soc5_results.csv"
 out = open(outname, 'w')
 
 line_idx=1

@@ -2,14 +2,13 @@
 import sys
 from scipy.stats import gmean
 
-if len(sys.argv) < 4:
-    print("Usage: python process_train.py file phases iters")
+if len(sys.argv) < 3:
+    print("Usage: python process_train.py file iters")
     exit()
 
-phases=int(sys.argv[2])
-iters=int(sys.argv[3])
-
 file=sys.argv[1]
+iters=int(sys.argv[2])
+phases=40
 
 with open(file, 'r') as f:
     lines = f.readlines()
