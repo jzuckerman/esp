@@ -675,7 +675,7 @@ int main (int argc, char** argv)
 	srand(time(NULL));
 
 	if (argc < 4){
-		printf("Usage: ./multiacc.exe file coherence alloc [epsilon] [alpha]\n");
+		printf("Usage: ./comp_vision.exe file coherence alloc [epsilon] [alpha]\n");
 		return -1;
 	}
 	//command line args
@@ -684,9 +684,9 @@ int main (int argc, char** argv)
 
 	int test_no = argv[1][9] - 48;
 	printf("test_no %d\n", test_no);
-	const char* out_name_d = "multiacc_devices.csv";
-	const char* out_name_t = "multiacc_threads.csv";
-	const char* out_name_p = "multiacc_phases.csv";
+	const char* out_name_d = "comp_vision_devices.csv";
+	const char* out_name_t = "comp_vision_threads.csv";
+	const char* out_name_p = "comp_vision_phases.csv";
 	const char* out_name_status_d = "status_devices.csv";
 	int i;
 

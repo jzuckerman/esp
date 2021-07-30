@@ -466,7 +466,7 @@ int main(int argc, char **argv)
     read_spmv(spmv_buf_l, LARGE);       
 
     //allocate buffers
-    FILE* outfile = fopen("motiv_coh.csv", "w");
+    FILE* outfile = fopen("single_coh.csv", "w");
     fprintf(outfile, "xAxisTopLabel,xAxisGroupLabel,xAxisLabel,xAxisSubLabel,yAxisLabel\n");
     unsigned coherence, acc, s, i;
     for (acc = 0; acc < NACC; acc++){
