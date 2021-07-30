@@ -51,18 +51,15 @@ struct fft_stratus_access fft_cfg_000[] = {
 
 //-----------CHOLEKSY------------
 
-#define INPUT_ROWS 64
-#define OUTPUT_ROWS 64
+#define ROWS 64
 
 /* <<--params-->> */
-int32_t input_rows = INPUT_ROWS;
-int32_t output_rows = OUTPUT_ROWS;
+int32_t rows = ROWS;
 
 struct cholesky_stratus_access cholesky_cfg_000[] = {
          /* <<--descriptor-->> */
     {
-        .input_rows = INPUT_ROWS,
-        .output_rows = OUTPUT_ROWS,
+        .rows = ROWS,
         .src_offset = 0,
         .dst_offset = 0,
         .esp.coherence = ACC_COH_FULL,

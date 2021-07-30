@@ -243,7 +243,7 @@ static void esp_update_status_coh(int loop_iter, esp_thread_info_t *info, struct
         else
             ddr_accesses = (0xFFFFFFFF - ddr_accesses_start[esp->ddr_node]) + ddr_accesses_end[esp->ddr_node];
             
-            ddr_access_adjusted =(int) (((long long) ddr_accesses * (long long) esp->footprint) / 
+        ddr_access_adjusted =(int) (((long long) ddr_accesses * (long long) esp->footprint) / 
                                         esp_status_coh.active_footprint_split[esp->ddr_node]); 
     }
     *ddr_access_return = ddr_access_adjusted;
@@ -251,8 +251,6 @@ static void esp_update_status_coh(int loop_iter, esp_thread_info_t *info, struct
 
     if (esp->learn && alpha > 0.001){
        *reward = calculate_reward(ddr_access_adjusted, acc_stats, hw_ns, esp->footprint, esp->devid, esp->alloc_policy);
-       *(info->total_reward_ptr) += *reward;
-       *(info->invocation_cnt_ptr) += 1;
        update_q_table_coh(esp->devid, state, esp->coherence, *reward, alpha);
     }
    
@@ -385,7 +383,6 @@ void *accelerator_thread_serial(void *ptr)
             struct timespec th_end;
             int rc = 0;
             esp_thread_info_t *info = thread + i;
-
             if (!info->run)
                 continue;
 
@@ -678,7 +675,7 @@ void esp_run_parallel(esp_thread_info_t* cfg[], unsigned nthreads, unsigned* nac
 			perror("pthread_create");
 		}
 	}
-	
+    
     if (nthreads > 1) {
         for (i = 0; i < nthreads; i++) {
             rc = pthread_join(thread[i], NULL);
@@ -754,4 +751,16 @@ void esp_cleanup()
 {
     print_values();
     munmap_monitors();
+}
+
+char* coh_to_str(unsigned coherence)
+{
+    if (coherence == ACC_COH_NONE)
+        return "non-coh-DMA";
+    else if (coherence == ACC_COH_LLC)
+        return "llc-coh-DMA";
+    else if (coherence == ACC_COH_RECALL)
+        return "coh-DMA";
+    else
+        return "full-coh";
 }

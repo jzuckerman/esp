@@ -151,19 +151,16 @@ static void init_parameters(unsigned acc, unsigned s, unsigned coherence)
             cholesky_cfg_000[0].esp.coherence = coherence;
             cholesky_cfg_000[0].esp.devid = CHOLESKY;
             if (s == SMALL) {
-                cholesky_cfg_000[0].input_rows = 46;
-                cholesky_cfg_000[0].output_rows = 46;
+                cholesky_cfg_000[0].rows = 46;
             } else if (s == MEDIUM) {
-                cholesky_cfg_000[0].input_rows = 182;
-                cholesky_cfg_000[0].output_rows = 182;
+                cholesky_cfg_000[0].rows = 182;
             } else if (s == LARGE) {
-                cholesky_cfg_000[0].input_rows = 726;
-                cholesky_cfg_000[0].output_rows = 726;
+                cholesky_cfg_000[0].rows = 726;
             }
-            in_size = cholesky_cfg_000[0].input_rows *
-                      cholesky_cfg_000[0].input_rows * 4;
-            out_size = cholesky_cfg_000[0].output_rows *
-                      cholesky_cfg_000[0].output_rows * 4;
+            in_size = cholesky_cfg_000[0].rows *
+                      cholesky_cfg_000[0].rows * 4;
+            out_size = cholesky_cfg_000[0].rows *
+                      cholesky_cfg_000[0].rows * 4;
             in_place = 0;
             cfg_000[0].ioctl_req = CHOLESKY_STRATUS_IOC_ACCESS;
             cfg_000[0].esp_desc = &(cholesky_cfg_000[0].esp);
@@ -464,9 +461,9 @@ int main(int argc, char **argv)
     
     float norm_execution, norm_mem;
     
-    //read_spmv(spmv_buf_s, SMALL);       
-    //read_spmv(spmv_buf_m, MEDIUM);       
-    //read_spmv(spmv_buf_l, LARGE);       
+    read_spmv(spmv_buf_s, SMALL);       
+    read_spmv(spmv_buf_m, MEDIUM);       
+    read_spmv(spmv_buf_l, LARGE);       
 
     //allocate buffers
     FILE* outfile = fopen("motiv_coh.csv", "w");

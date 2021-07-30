@@ -207,25 +207,20 @@ static void config_threads(FILE* f, accelerator_thread_info_t **thread_info, esp
                     cholesky_cfg_000[0].esp.coherence = coherence;
                     cholesky_cfg_000[0].esp.devid = CHOLESKY;
                     if (s == EXTRA_SMALL) {
-                        cholesky_cfg_000[0].input_rows = 20;
-                        cholesky_cfg_000[0].output_rows = 20;
+                        cholesky_cfg_000[0].rows = 20;
                     } else if (s == SMALL) {
-                        cholesky_cfg_000[0].input_rows = 40;
-                        cholesky_cfg_000[0].output_rows = 40;
+                        cholesky_cfg_000[0].rows = 40;
                     } else if (s == MEDIUM) {
-                        cholesky_cfg_000[0].input_rows = 90;
-                        cholesky_cfg_000[0].output_rows = 90;
+                        cholesky_cfg_000[0].rows = 90;
                     } else if (s == LARGE) {
-                        cholesky_cfg_000[0].input_rows = 180;
-                        cholesky_cfg_000[0].output_rows = 180;
+                        cholesky_cfg_000[0].rows = 180;
                     } else if (s == EXTRA_LARGE) {
-                        cholesky_cfg_000[0].input_rows = 360;
-                        cholesky_cfg_000[0].output_rows = 360;
+                        cholesky_cfg_000[0].rows = 360;
                     }
-                    in_size = cholesky_cfg_000[0].input_rows *
-                              cholesky_cfg_000[0].input_rows;
-                    out_size = cholesky_cfg_000[0].output_rows *
-                              cholesky_cfg_000[0].output_rows;
+                    in_size = cholesky_cfg_000[0].rows *
+                              cholesky_cfg_000[0].rows;
+                    out_size = cholesky_cfg_000[0].rows *
+                              cholesky_cfg_000[0].rows;
                     in_place = 0;
                     cholesky_cfg_000[0].src_offset = offset;
                     cholesky_cfg_000[0].dst_offset = offset;
@@ -1065,13 +1060,6 @@ int main (int argc, char** argv)
 
 	esp_init();
    
-    //struct contig_alloc_params cache_fill_params;
-    //struct esp_status_alloc status_alloc;
-    //cache_fill_params.pol.balanced.threshold = 0;
-	//cache_fill_params.pol.balanced.cluster_size = 1;
-    //cache_fill_params.pol.balanced.ddr_node = 0;
-    //int *cache_fill_buffer = (int*) esp_alloc_policy(&cache_fill_params, 3145728, &status_alloc);
-
     read_spmv(spmv_buf_s, 1);
     read_spmv(spmv_buf_m, 2);
     read_spmv(spmv_buf_l, 3);
