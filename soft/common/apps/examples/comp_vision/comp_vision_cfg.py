@@ -13,7 +13,7 @@ flow_choices = ["serial"]
 
 i = 0
 while True:
-    s = "cfg_esp4ml_" + str(i) + ".txt"
+    s = "cfg_comp_vision_" + str(i) + ".txt"
     if os.path.isfile(s):
         i += 1
     else:

@@ -4,5 +4,5 @@ EXTRA_CFLAGS ?= -I$(ESP_ROOT)/accelerators/stratus_hls/fft_stratus/sw/linux/incl
 EXTRA_CFLAGS += -I$(ESP_ROOT)/accelerators/stratus_hls/vitdodec_stratus/sw/linux/include
 EXTRA_CFLAGS += -I$(ESP_ROOT)/accelerators/stratus_hls/conv2d_stratus/sw/linux/include
 EXTRA_CFLAGS += -I$(ESP_ROOT)/accelerators/stratus_hls/gemm_stratus/sw/linux/include
-APPNAME := mini-era
+APPNAME := auton_driving
 include $(DRIVERS)/common.mk

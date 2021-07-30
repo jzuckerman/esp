@@ -6,9 +6,10 @@ static unsigned in_size;
 static unsigned out_size;
 static unsigned size;
 
-#define NACC 11
+//exclude autoenc
+#define NACC 10
 #define SORT 0
-#define CHOLESKY 10
+#define CHOLESKY 1
 #define VITDODEC 2
 #define SPMV 3
 #define FFT 4
@@ -17,14 +18,14 @@ static unsigned size;
 #define CONV2D 7
 #define GEMM 8
 #define MLP 9 
-#define AUTOENC 1
+#define AUTOENC 10
 
 #define SIZES 3
 #define SMALL 0
 #define MEDIUM 1
 #define LARGE 2
 
-#define TRIALS 5
+#define TRIALS 10
 
 char* devnames[] = {
 "sort_stratus.0",
@@ -471,7 +472,7 @@ int main(int argc, char **argv)
     FILE* outfile = fopen("motiv_coh.csv", "w");
     fprintf(outfile, "xAxisTopLabel,xAxisGroupLabel,xAxisLabel,xAxisSubLabel,yAxisLabel\n");
     unsigned coherence, acc, s, i;
-    for (acc = 1; acc < 2; acc++){
+    for (acc = 0; acc < NACC; acc++){
         for (s = 0; s < SIZES; s++) {        
             for (coherence = ACC_COH_NONE; coherence <= ACC_COH_FULL; coherence++) {
                 printf("%d, %d, %d\n", acc, s, coherence);

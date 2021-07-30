@@ -13,7 +13,7 @@ flow_choices = ["serial"]
 
 i = 0
 while True:
-    s = "cfg_mini-era_" + str(i) + ".txt"
+    s = "cfg_auton_driving_" + str(i) + ".txt"
     if os.path.isfile(s):
         i += 1
     else:
