@@ -1,0 +1,65 @@
+xAxisGroupLabel,xAxisLabel,xAxisSubLabel,yAxisLabel
+10 Threads: Small,execution time,fixed-non-coh-dma,1
+10 Threads: Small,execution time,fixed-llc-coh-dma,0.6325763989
+10 Threads: Small,execution time,fixed-coh-dma,0.6203229493
+10 Threads: Small,execution time,fixed-full-coh,0.6247037162
+10 Threads: Small,execution time,rand,0.8734339287
+10 Threads: Small,execution time,fixed-hetero,1.193
+10 Threads: Small,execution time,manual,0.5939113688
+10 Threads: Small,execution time,cohmeleon,0.6173812749
+10 Threads: Small,off-chip memory accesses,fixed-non-coh-dma,1
+10 Threads: Small,off-chip memory accesses,fixed-llc-coh-dma,0.01207091664
+10 Threads: Small,off-chip memory accesses,fixed-coh-dma,0.01207091664
+10 Threads: Small,off-chip memory accesses,fixed-full-coh,0.07121840815
+10 Threads: Small,off-chip memory accesses,rand,1.418030932
+10 Threads: Small,off-chip memory accesses,fixed-hetero,0.8535
+10 Threads: Small,off-chip memory accesses,manual,0.02293474161
+10 Threads: Small,off-chip memory accesses,cohmeleon,0.01207091664
+4 Threads: Medium,execution time,fixed-non-coh-dma,1
+4 Threads: Medium,execution time,fixed-llc-coh-dma,0.9298068991
+4 Threads: Medium,execution time,fixed-coh-dma,0.8663184977
+4 Threads: Medium,execution time,fixed-full-coh,1.257176615
+4 Threads: Medium,execution time,rand,1.085902653
+4 Threads: Medium,execution time,fixed-hetero,0.8472
+4 Threads: Medium,execution time,manual,0.8204832417
+4 Threads: Medium,execution time,cohmeleon,0.8570060265
+4 Threads: Medium,off-chip memory accesses,fixed-non-coh-dma,1
+4 Threads: Medium,off-chip memory accesses,fixed-llc-coh-dma,0.3567770049
+4 Threads: Medium,off-chip memory accesses,fixed-coh-dma,0.2645386374
+4 Threads: Medium,off-chip memory accesses,fixed-full-coh,0.3038982377
+4 Threads: Medium,off-chip memory accesses,rand,0.7253084122
+4 Threads: Medium,off-chip memory accesses,fixed-hetero,0.3869
+4 Threads: Medium,off-chip memory accesses,manual,0.5170505476
+4 Threads: Medium,off-chip memory accesses,cohmeleon,0.24824192
+6 Threads: Large,execution time,fixed-non-coh-dma,1
+6 Threads: Large,execution time,fixed-llc-coh-dma,1.567281725
+6 Threads: Large,execution time,fixed-coh-dma,1.567607296
+6 Threads: Large,execution time,fixed-full-coh,2.328639682
+6 Threads: Large,execution time,rand,1.514189206
+6 Threads: Large,execution time,fixed-hetero,1.4740
+6 Threads: Large,execution time,manual,0.9865946069
+6 Threads: Large,execution time,cohmeleon,0.9514182694
+6 Threads: Large,off-chip memory accesses,fixed-non-coh-dma,1
+6 Threads: Large,off-chip memory accesses,fixed-llc-coh-dma,0.9351882007
+6 Threads: Large,off-chip memory accesses,fixed-coh-dma,0.9315601199
+6 Threads: Large,off-chip memory accesses,fixed-full-coh,1.004257826
+6 Threads: Large,off-chip memory accesses,rand,0.968928744
+6 Threads: Large,off-chip memory accesses,fixed-hetero,0.9381
+6 Threads: Large,off-chip memory accesses,manual,0.9995255751
+6 Threads: Large,off-chip memory accesses,cohmeleon,0.9224872882
+3 Threads: Variable,execution time,fixed-non-coh-dma,1
+3 Threads: Variable,execution time,fixed-llc-coh-dma,0.6945220794
+3 Threads: Variable,execution time,fixed-coh-dma,0.6784941794
+3 Threads: Variable,execution time,fixed-full-coh,1.552494714
+3 Threads: Variable,execution time,rand,1.735618636
+3 Threads: Variable,execution time,fixed-hetero,0.7559
+3 Threads: Variable,execution time,manual,0.6751160473
+3 Threads: Variable,execution time,cohmeleon,0.6529637641
+3 Threads: Variable,off-chip memory accesses,fixed-non-coh-dma,1
+3 Threads: Variable,off-chip memory accesses,fixed-llc-coh-dma,0.03956455804
+3 Threads: Variable,off-chip memory accesses,fixed-coh-dma,0.04945569755
+3 Threads: Variable,off-chip memory accesses,fixed-full-coh,0.1405865137
+3 Threads: Variable,off-chip memory accesses,rand,1.040602935
+3 Threads: Variable,off-chip memory accesses,fixed-hetero,1.0176
+3 Threads: Variable,off-chip memory accesses,manual,0.02801201619
+3 Threads: Variable,off-chip memory accesses,cohmeleon,0.02047774977

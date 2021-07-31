@@ -1,0 +1,187 @@
+xAxisGroupLabel,metric,xAxisLabel,yAxisLabel
+10 Iterations,execution time,0,1.412555793
+10 Iterations,execution time,1,0.8594548638
+10 Iterations,execution time,2,1.011499364
+10 Iterations,execution time,3,0.8919671402
+10 Iterations,execution time,4,1.034227543
+10 Iterations,execution time,5,0.8415339533
+10 Iterations,execution time,6,0.9151964159
+10 Iterations,execution time,7,0.8738375006
+10 Iterations,execution time,8,0.8387543691
+10 Iterations,execution time,9,0.8472234157
+10 Iterations,execution time,10,0.8380028573
+10 Iterations,off-chip memory accesses,0,0.7260821367
+10 Iterations,off-chip memory accesses,1,0.1234410409
+10 Iterations,off-chip memory accesses,2,0.3286613905
+10 Iterations,off-chip memory accesses,3,0.1246097816
+10 Iterations,off-chip memory accesses,4,0.2905988167
+10 Iterations,off-chip memory accesses,5,0.1206661738
+10 Iterations,off-chip memory accesses,6,0.09505332659
+10 Iterations,off-chip memory accesses,7,0.08160542959
+10 Iterations,off-chip memory accesses,8,0.07112391438
+10 Iterations,off-chip memory accesses,9,0.104548211
+10 Iterations,off-chip memory accesses,10,0.1180593379
+30 Iterations,execution time,0,1.412555793
+30 Iterations,execution time,1,0.8843984061
+30 Iterations,execution time,2,0.9046361549
+30 Iterations,execution time,3,0.8661365075
+30 Iterations,execution time,4,0.8750063732
+30 Iterations,execution time,5,1.002679809
+30 Iterations,execution time,6,0.8824912175
+30 Iterations,execution time,7,0.8823052302
+30 Iterations,execution time,8,0.8664783519
+30 Iterations,execution time,9,0.8643961238
+30 Iterations,execution time,10,0.9059652054
+30 Iterations,execution time,11,0.8721723598
+30 Iterations,execution time,12,0.8607285174
+30 Iterations,execution time,13,0.8495872466
+30 Iterations,execution time,14,0.8425840534
+30 Iterations,execution time,15,0.8766109999
+30 Iterations,execution time,16,0.883324985
+30 Iterations,execution time,17,0.8544253925
+30 Iterations,execution time,18,0.8447294674
+30 Iterations,execution time,19,0.8464670334
+30 Iterations,execution time,20,0.8397372015
+30 Iterations,execution time,21,0.8368527702
+30 Iterations,execution time,22,0.846871826
+30 Iterations,execution time,23,0.8452270004
+30 Iterations,execution time,24,0.8540945908
+30 Iterations,execution time,25,0.8671512494
+30 Iterations,execution time,26,0.8440644261
+30 Iterations,execution time,27,0.8411096678
+30 Iterations,execution time,28,0.8519204696
+30 Iterations,execution time,29,0.8526935048
+30 Iterations,execution time,30,0.8655623714
+30 Iterations,off-chip memory accesses,0,0.7260821367
+30 Iterations,off-chip memory accesses,1,0.144583956
+30 Iterations,off-chip memory accesses,2,0.2765795066
+30 Iterations,off-chip memory accesses,3,0.1167856201
+30 Iterations,off-chip memory accesses,4,0.1200242668
+30 Iterations,off-chip memory accesses,5,0.2215893305
+30 Iterations,off-chip memory accesses,6,0.2270872424
+30 Iterations,off-chip memory accesses,7,0.1290432026
+30 Iterations,off-chip memory accesses,8,0.1411820981
+30 Iterations,off-chip memory accesses,9,0.1088768921
+30 Iterations,off-chip memory accesses,10,0.1367173946
+30 Iterations,off-chip memory accesses,11,0.1119461756
+30 Iterations,off-chip memory accesses,12,0.1850889341
+30 Iterations,off-chip memory accesses,13,0.1198519951
+30 Iterations,off-chip memory accesses,14,0.09618814054
+30 Iterations,off-chip memory accesses,15,0.09976225893
+30 Iterations,off-chip memory accesses,16,0.1771675383
+30 Iterations,off-chip memory accesses,17,0.180386112
+30 Iterations,off-chip memory accesses,18,0.1217075017
+30 Iterations,off-chip memory accesses,19,0.07622513988
+30 Iterations,off-chip memory accesses,20,0.1530661738
+30 Iterations,off-chip memory accesses,21,0.1023885146
+30 Iterations,off-chip memory accesses,22,0.08826216074
+30 Iterations,off-chip memory accesses,23,0.1049670413
+30 Iterations,off-chip memory accesses,24,0.1074028262
+30 Iterations,off-chip memory accesses,25,0.1274900892
+30 Iterations,off-chip memory accesses,26,0.1065260552
+30 Iterations,off-chip memory accesses,27,0.1070198595
+30 Iterations,off-chip memory accesses,28,0.1573348496
+30 Iterations,off-chip memory accesses,29,0.1296514023
+30 Iterations,off-chip memory accesses,30,0.1298953533
+50 Iterations,execution time,0,1.412555793
+50 Iterations,execution time,1,0.8877076128
+50 Iterations,execution time,2,0.9743983857
+50 Iterations,execution time,3,0.8868335896
+50 Iterations,execution time,4,0.8531430225
+50 Iterations,execution time,5,0.8425038262
+50 Iterations,execution time,6,0.8708664566
+50 Iterations,execution time,7,0.9473499081
+50 Iterations,execution time,8,0.8526846348
+50 Iterations,execution time,9,0.8366524313
+50 Iterations,execution time,10,0.8451495059
+50 Iterations,execution time,11,0.8603768654
+50 Iterations,execution time,12,0.8632505697
+50 Iterations,execution time,13,0.8799447204
+50 Iterations,execution time,14,0.8403922783
+50 Iterations,execution time,15,0.8488539378
+50 Iterations,execution time,16,0.8423992068
+50 Iterations,execution time,17,0.8394052452
+50 Iterations,execution time,18,0.9882626474
+50 Iterations,execution time,19,0.8488211924
+50 Iterations,execution time,20,0.9568593564
+50 Iterations,execution time,21,0.9452139293
+50 Iterations,execution time,22,0.8444546895
+50 Iterations,execution time,23,0.8595648003
+50 Iterations,execution time,24,0.8383453025
+50 Iterations,execution time,25,0.8423572937
+50 Iterations,execution time,26,0.8553965475
+50 Iterations,execution time,27,0.8255265197
+50 Iterations,execution time,28,0.8393399693
+50 Iterations,execution time,29,0.8449127357
+50 Iterations,execution time,30,0.8382764104
+50 Iterations,execution time,31,0.8410406081
+50 Iterations,execution time,32,0.8335574901
+50 Iterations,execution time,33,0.8409728478
+50 Iterations,execution time,34,0.8534736044
+50 Iterations,execution time,35,0.8365243026
+50 Iterations,execution time,36,0.8468325971
+50 Iterations,execution time,37,0.8360553634
+50 Iterations,execution time,38,0.8402956452
+50 Iterations,execution time,39,0.8369718297
+50 Iterations,execution time,40,0.8421004345
+50 Iterations,execution time,41,0.834891979
+50 Iterations,execution time,42,0.8378486216
+50 Iterations,execution time,43,0.8347749581
+50 Iterations,execution time,44,0.8428161882
+50 Iterations,execution time,45,0.8463113126
+50 Iterations,execution time,46,0.8383222073
+50 Iterations,execution time,47,0.8363549022
+50 Iterations,execution time,48,0.8511163125
+50 Iterations,execution time,49,0.8353304393
+50 Iterations,execution time,50,0.8454572707
+50 Iterations,off-chip memory accesses,0,0.7260821367
+50 Iterations,off-chip memory accesses,1,0.08270967473
+50 Iterations,off-chip memory accesses,2,0.2775883885
+50 Iterations,off-chip memory accesses,3,0.1899180333
+50 Iterations,off-chip memory accesses,4,0.1505320084
+50 Iterations,off-chip memory accesses,5,0.1214293721
+50 Iterations,off-chip memory accesses,6,0.2278148659
+50 Iterations,off-chip memory accesses,7,0.2209100042
+50 Iterations,off-chip memory accesses,8,0.1190727021
+50 Iterations,off-chip memory accesses,9,0.08992467593
+50 Iterations,off-chip memory accesses,10,0.1541494996
+50 Iterations,off-chip memory accesses,11,0.1330216779
+50 Iterations,off-chip memory accesses,12,0.1587425466
+50 Iterations,off-chip memory accesses,13,0.149910761
+50 Iterations,off-chip memory accesses,14,0.1579978312
+50 Iterations,off-chip memory accesses,15,0.1740210607
+50 Iterations,off-chip memory accesses,16,0.1348322381
+50 Iterations,off-chip memory accesses,17,0.1234195767
+50 Iterations,off-chip memory accesses,18,0.2664819076
+50 Iterations,off-chip memory accesses,19,0.1311286207
+50 Iterations,off-chip memory accesses,20,0.3054610715
+50 Iterations,off-chip memory accesses,21,0.2165567348
+50 Iterations,off-chip memory accesses,22,0.0880921613
+50 Iterations,off-chip memory accesses,23,0.1130983369
+50 Iterations,off-chip memory accesses,24,0.09271005003
+50 Iterations,off-chip memory accesses,25,0.1295633567
+50 Iterations,off-chip memory accesses,26,0.1022043697
+50 Iterations,off-chip memory accesses,27,0.1160767719
+50 Iterations,off-chip memory accesses,28,0.1218950601
+50 Iterations,off-chip memory accesses,29,0.1090819115
+50 Iterations,off-chip memory accesses,30,0.1016908673
+50 Iterations,off-chip memory accesses,31,0.1244045724
+50 Iterations,off-chip memory accesses,32,0.1253511018
+50 Iterations,off-chip memory accesses,33,0.1229403094
+50 Iterations,off-chip memory accesses,34,0.1580846579
+50 Iterations,off-chip memory accesses,35,0.1630910857
+50 Iterations,off-chip memory accesses,36,0.1021754554
+50 Iterations,off-chip memory accesses,37,0.1223248056
+50 Iterations,off-chip memory accesses,38,0.0987181964
+50 Iterations,off-chip memory accesses,39,0.1216299677
+50 Iterations,off-chip memory accesses,40,0.103755809
+50 Iterations,off-chip memory accesses,41,0.1246030944
+50 Iterations,off-chip memory accesses,42,0.1005473628
+50 Iterations,off-chip memory accesses,43,0.1009176883
+50 Iterations,off-chip memory accesses,44,0.1021992897
+50 Iterations,off-chip memory accesses,45,0.1011429537
+50 Iterations,off-chip memory accesses,46,0.1218611342
+50 Iterations,off-chip memory accesses,47,0.121292988
+50 Iterations,off-chip memory accesses,48,0.1267746572
+50 Iterations,off-chip memory accesses,49,0.09972821878
+50 Iterations,off-chip memory accesses,50,0.1253521832

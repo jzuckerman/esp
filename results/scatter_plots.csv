@@ -1,0 +1,65 @@
+xAxisGroupLabel,time,ddr,pol
+SoC1,1,1,fixed-non-coh-dma
+SoC1,1.2339,0.1897,fixed-llc-coh-dma
+SoC1,1.1756,0.3209,fixed-coh-dma
+SoC1,2.2203,0.4418,fixed-full-coh
+SoC1,1.3733,0.7737,rand
+SoC1,1.1946,0.7978,fixed-hetero
+SoC1,0.8817,0.1558,manual
+SoC1,0.8880,0.0391,cohmeleon
+SoC2,1,1,fixed-non-coh-dma
+SoC2,1.2601,0.1303,fixed-llc-coh-dma
+SoC2,1.2233,0.1029,fixed-coh-dma
+SoC2,2.0466,0.1727,fixed-full-coh
+SoC2,1.3717,0.5812,rand
+SoC2,1.0690,1.0060,fixed-hetero
+SoC2,0.8662,0.1554,manual
+SoC2,0.8703,0.0842,cohmeleon
+SoC3,1,1,fixed-non-coh-dma
+SoC3,1.1544,0.1938,fixed-llc-coh-dma
+SoC3,1.1267,0.2372,fixed-coh-dma
+SoC3,1.5309,0.3723,fixed-full-coh
+SoC3,1.2513,0.5911,rand
+SoC3,1.2168,0.9059,fixed-hetero
+SoC3,0.8658,0.1076,manual
+SoC3,0.8858,0.0542,cohmeleon
+SoC0 - Irregular,1,1,fixed-non-coh-dma
+SoC0 - Irregular,0.8987787136,0.10903292,fixed-llc-coh-dma
+SoC0 - Irregular,0.8424192168,0.1771703371,fixed-coh-dma
+SoC0 - Irregular,2.059873985,0.4129489153,fixed-full-coh
+SoC0 - Irregular,1.203080019,0.5158282884,rand
+SoC0 - Irregular,0.8330087223,0.2595801269,fixed-hetero
+SoC0 - Irregular,0.6941513671,0.1607860487,manual
+SoC0 - Irregular,0.6954329319,0.08424921077,cohmeleon
+SoC0 - Streaming,1,1,fixed-non-coh-dma
+SoC0 - Streaming,1.066294336,0.3041002511,fixed-llc-coh-dma
+SoC0 - Streaming,1.06091167,0.3034458029,fixed-coh-dma
+SoC0 - Streaming,2.588434661,0.7110898455,fixed-full-coh
+SoC0 - Streaming,1.396361652,0.5839225887,rand
+SoC0 - Streaming,0.9962760886,0.5489822163,fixed-hetero
+SoC0 - Streaming,0.8449260933,0.3814258208,manual
+SoC0 - Streaming,0.8471843929,0.3185681037,cohmeleon
+SoC4 (Mixed Accelerators),1,1,fixed-non-coh-dma
+SoC4 (Mixed Accelerators),0.89,0.085,fixed-llc-coh-dma
+SoC4 (Mixed Accelerators),0.878,0.086,fixed-coh-dma
+SoC4 (Mixed Accelerators),2.41,0.084,fixed-full-coh
+SoC4 (Mixed Accelerators),1.16,0.417,rand
+SoC4 (Mixed Accelerators),1.06,0.603,fixed-hetero
+SoC4 (Mixed Accelerators),0.799,0.321,manual
+SoC4 (Mixed Accelerators),0.865,0.087,cohmeleon
+SoC5 (Autonomous Driving),1,1,fixed-non-coh-dma
+SoC5 (Autonomous Driving),0.95,0.47,fixed-llc-coh-dma
+SoC5 (Autonomous Driving),0.921,0.325,fixed-coh-dma
+SoC5 (Autonomous Driving),1.33,0.327,fixed-full-coh
+SoC5 (Autonomous Driving),1.004,0.521,rand
+SoC5 (Autonomous Driving),0.97,0.809,fixed-hetero
+SoC5 (Autonomous Driving),0.968,0.428,manual
+SoC5 (Autonomous Driving),0.935,0.313,cohmeleon
+SoC6 (Computer Vision),1,1,fixed-non-coh-dma
+SoC6 (Computer Vision),1.002,0.730,fixed-llc-coh-dma
+SoC6 (Computer Vision),0.997,0.716,fixed-coh-dma
+SoC6 (Computer Vision),1.110,0.747,fixed-full-coh
+SoC6 (Computer Vision),1.044,0.793,rand
+SoC6 (Computer Vision),1.006,0.858,fixed-hetero
+SoC6 (Computer Vision),0.966,0.620,manual
+SoC6 (Computer Vision),0.973,0.582,cohmeleon

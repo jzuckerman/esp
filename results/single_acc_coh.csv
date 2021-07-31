@@ -1,0 +1,289 @@
+xAxisTopLabel,xAxisGroupLabel,xAxisLabel,xAxisSubLabel,yAxisLabel
+Sort,Small,execution time,non-coh-dma,1
+Sort,Small,off-chip memory accesses,non-coh-dma,1
+Sort,Small,execution time,llc-coh-dma,0.775824
+Sort,Small,off-chip memory accesses,llc-coh-dma,0
+Sort,Small,execution time,coh-dma,0.514153
+Sort,Small,off-chip memory accesses,coh-dma,0
+Sort,Small,execution time,full-coh,0.720574
+Sort,Small,off-chip memory accesses,full-coh,0
+Sort,Medium,execution time,non-coh-dma,1
+Sort,Medium,off-chip memory accesses,non-coh-dma,1
+Sort,Medium,execution time,llc-coh-dma,0.504701
+Sort,Medium,off-chip memory accesses,llc-coh-dma,0
+Sort,Medium,execution time,coh-dma,0.474095
+Sort,Medium,off-chip memory accesses,coh-dma,0
+Sort,Medium,execution time,full-coh,2.123159
+Sort,Medium,off-chip memory accesses,full-coh,0
+Sort,Large,execution time,non-coh-dma,1
+Sort,Large,off-chip memory accesses,non-coh-dma,1
+Sort,Large,execution time,llc-coh-dma,2.606915
+Sort,Large,off-chip memory accesses,llc-coh-dma,0.968781
+Sort,Large,execution time,coh-dma,2.599164
+Sort,Large,off-chip memory accesses,coh-dma,0.968588
+Sort,Large,execution time,full-coh,6.195755
+Sort,Large,off-chip memory accesses,full-coh,0.968662
+Cholesky,Small,execution time,non-coh-dma,1
+Cholesky,Small,off-chip memory accesses,non-coh-dma,1
+Cholesky,Small,execution time,llc-coh-dma,0.46362
+Cholesky,Small,off-chip memory accesses,llc-coh-dma,0.006753
+Cholesky,Small,execution time,coh-dma,0.405032
+Cholesky,Small,off-chip memory accesses,coh-dma,0
+Cholesky,Small,execution time,full-coh,0.498146
+Cholesky,Small,off-chip memory accesses,full-coh,0
+Cholesky,Medium,execution time,non-coh-dma,1
+Cholesky,Medium,off-chip memory accesses,non-coh-dma,1
+Cholesky,Medium,execution time,llc-coh-dma,0.384087
+Cholesky,Medium,off-chip memory accesses,llc-coh-dma,0.003841
+Cholesky,Medium,execution time,coh-dma,0.379275
+Cholesky,Medium,off-chip memory accesses,coh-dma,0.00231
+Cholesky,Medium,execution time,full-coh,4.130205
+Cholesky,Medium,off-chip memory accesses,full-coh,0.001703
+Cholesky,Large,execution time,non-coh-dma,1
+Cholesky,Large,off-chip memory accesses,non-coh-dma,1
+Cholesky,Large,execution time,llc-coh-dma,2.228163
+Cholesky,Large,off-chip memory accesses,llc-coh-dma,0.97835
+Cholesky,Large,execution time,coh-dma,2.22871
+Cholesky,Large,off-chip memory accesses,coh-dma,0.978755
+Cholesky,Large,execution time,full-coh,6.630961
+Cholesky,Large,off-chip memory accesses,full-coh,0.978321
+Viterbi,Small,execution time,non-coh-dma,1
+Viterbi,Small,off-chip memory accesses,non-coh-dma,1
+Viterbi,Small,execution time,llc-coh-dma,0.683643
+Viterbi,Small,off-chip memory accesses,llc-coh-dma,0.053885
+Viterbi,Small,execution time,coh-dma,0.693991
+Viterbi,Small,off-chip memory accesses,coh-dma,0
+Viterbi,Small,execution time,full-coh,1.040268
+Viterbi,Small,off-chip memory accesses,full-coh,0
+Viterbi,Medium,execution time,non-coh-dma,1
+Viterbi,Medium,off-chip memory accesses,non-coh-dma,1
+Viterbi,Medium,execution time,llc-coh-dma,0.839134
+Viterbi,Medium,off-chip memory accesses,llc-coh-dma,0.054414
+Viterbi,Medium,execution time,coh-dma,0.80451
+Viterbi,Medium,off-chip memory accesses,coh-dma,0
+Viterbi,Medium,execution time,full-coh,1.542012
+Viterbi,Medium,off-chip memory accesses,full-coh,0
+Viterbi,Large,execution time,non-coh-dma,1
+Viterbi,Large,off-chip memory accesses,non-coh-dma,1
+Viterbi,Large,execution time,llc-coh-dma,1.417418
+Viterbi,Large,off-chip memory accesses,llc-coh-dma,1.376624
+Viterbi,Large,execution time,coh-dma,1.411688
+Viterbi,Large,off-chip memory accesses,coh-dma,1.376357
+Viterbi,Large,execution time,full-coh,2.3575
+Viterbi,Large,off-chip memory accesses,full-coh,1.376267
+SPMV,Small,execution time,non-coh-dma,1
+SPMV,Small,off-chip memory accesses,non-coh-dma,1
+SPMV,Small,execution time,llc-coh-dma,0.511091
+SPMV,Small,off-chip memory accesses,llc-coh-dma,0.0053
+SPMV,Small,execution time,coh-dma,0.506623
+SPMV,Small,off-chip memory accesses,coh-dma,0
+SPMV,Small,execution time,full-coh,0.492902
+SPMV,Small,off-chip memory accesses,full-coh,0
+SPMV,Medium,execution time,non-coh-dma,1
+SPMV,Medium,off-chip memory accesses,non-coh-dma,1
+SPMV,Medium,execution time,llc-coh-dma,0.584768
+SPMV,Medium,off-chip memory accesses,llc-coh-dma,0.004257
+SPMV,Medium,execution time,coh-dma,0.583192
+SPMV,Medium,off-chip memory accesses,coh-dma,0
+SPMV,Medium,execution time,full-coh,0.782506
+SPMV,Medium,off-chip memory accesses,full-coh,0
+SPMV,Large,execution time,non-coh-dma,1
+SPMV,Large,off-chip memory accesses,non-coh-dma,1
+SPMV,Large,execution time,llc-coh-dma,0.954386
+SPMV,Large,off-chip memory accesses,llc-coh-dma,1.055436
+SPMV,Large,execution time,coh-dma,0.953878
+SPMV,Large,off-chip memory accesses,coh-dma,1.055483
+SPMV,Large,execution time,full-coh,1.905047
+SPMV,Large,off-chip memory accesses,full-coh,1.055247
+FFT,Small,execution time,non-coh-dma,1
+FFT,Small,off-chip memory accesses,non-coh-dma,1
+FFT,Small,execution time,llc-coh-dma,0.666394
+FFT,Small,off-chip memory accesses,llc-coh-dma,0.064227
+FFT,Small,execution time,coh-dma,0.575968
+FFT,Small,off-chip memory accesses,coh-dma,0
+FFT,Small,execution time,full-coh,0.751736
+FFT,Small,off-chip memory accesses,full-coh,0
+FFT,Medium,execution time,non-coh-dma,1
+FFT,Medium,off-chip memory accesses,non-coh-dma,1
+FFT,Medium,execution time,llc-coh-dma,0.879688
+FFT,Medium,off-chip memory accesses,llc-coh-dma,0.066813
+FFT,Medium,execution time,coh-dma,0.862464
+FFT,Medium,off-chip memory accesses,coh-dma,0.000081
+FFT,Medium,execution time,full-coh,1.061622
+FFT,Medium,off-chip memory accesses,full-coh,0.000142
+FFT,Large,execution time,non-coh-dma,1
+FFT,Large,off-chip memory accesses,non-coh-dma,1
+FFT,Large,execution time,llc-coh-dma,0.987512
+FFT,Large,off-chip memory accesses,llc-coh-dma,1.440443
+FFT,Large,execution time,coh-dma,0.986156
+FFT,Large,off-chip memory accesses,coh-dma,1.440042
+FFT,Large,execution time,full-coh,1.809143
+FFT,Large,off-chip memory accesses,full-coh,1.440423
+Night-vision,Small,execution time,non-coh-dma,1
+Night-vision,Small,off-chip memory accesses,non-coh-dma,1
+Night-vision,Small,execution time,llc-coh-dma,0.773135
+Night-vision,Small,off-chip memory accesses,llc-coh-dma,0.019133
+Night-vision,Small,execution time,coh-dma,0.686088
+Night-vision,Small,off-chip memory accesses,coh-dma,0
+Night-vision,Small,execution time,full-coh,0.767053
+Night-vision,Small,off-chip memory accesses,full-coh,0
+Night-vision,Medium,execution time,non-coh-dma,1
+Night-vision,Medium,off-chip memory accesses,non-coh-dma,1
+Night-vision,Medium,execution time,llc-coh-dma,0.952956
+Night-vision,Medium,off-chip memory accesses,llc-coh-dma,0.049891
+Night-vision,Medium,execution time,coh-dma,0.942362
+Night-vision,Medium,off-chip memory accesses,coh-dma,0
+Night-vision,Medium,execution time,full-coh,1.077442
+Night-vision,Medium,off-chip memory accesses,full-coh,0
+Night-vision,Large,execution time,non-coh-dma,1
+Night-vision,Large,off-chip memory accesses,non-coh-dma,1
+Night-vision,Large,execution time,llc-coh-dma,1.068688
+Night-vision,Large,off-chip memory accesses,llc-coh-dma,1.383953
+Night-vision,Large,execution time,coh-dma,1.067613
+Night-vision,Large,off-chip memory accesses,coh-dma,1.383791
+Night-vision,Large,execution time,full-coh,1.2219
+Night-vision,Large,off-chip memory accesses,full-coh,1.383951
+MRI-Q,Small,execution time,non-coh-dma,1
+MRI-Q,Small,off-chip memory accesses,non-coh-dma,1
+MRI-Q,Small,execution time,llc-coh-dma,0.417893
+MRI-Q,Small,off-chip memory accesses,llc-coh-dma,0.000389
+MRI-Q,Small,execution time,coh-dma,0.416813
+MRI-Q,Small,off-chip memory accesses,coh-dma,0
+MRI-Q,Small,execution time,full-coh,0.452505
+MRI-Q,Small,off-chip memory accesses,full-coh,0
+MRI-Q,Medium,execution time,non-coh-dma,1
+MRI-Q,Medium,off-chip memory accesses,non-coh-dma,1
+MRI-Q,Medium,execution time,llc-coh-dma,0.341198
+MRI-Q,Medium,off-chip memory accesses,llc-coh-dma,0.000033
+MRI-Q,Medium,execution time,coh-dma,0.341191
+MRI-Q,Medium,off-chip memory accesses,coh-dma,0
+MRI-Q,Medium,execution time,full-coh,4.959251
+MRI-Q,Medium,off-chip memory accesses,full-coh,0
+MRI-Q,Large,execution time,non-coh-dma,1
+MRI-Q,Large,off-chip memory accesses,non-coh-dma,1
+MRI-Q,Large,execution time,llc-coh-dma,2.296785
+MRI-Q,Large,off-chip memory accesses,llc-coh-dma,1.000008
+MRI-Q,Large,execution time,coh-dma,2.296634
+MRI-Q,Large,off-chip memory accesses,coh-dma,0.999911
+MRI-Q,Large,execution time,full-coh,7.124383
+MRI-Q,Large,off-chip memory accesses,full-coh,0.999975
+Conv-2D,Small,execution time,non-coh-dma,1
+Conv-2D,Small,off-chip memory accesses,non-coh-dma,1
+Conv-2D,Small,execution time,llc-coh-dma,0.626031
+Conv-2D,Small,off-chip memory accesses,llc-coh-dma,0.129821
+Conv-2D,Small,execution time,coh-dma,0.539667
+Conv-2D,Small,off-chip memory accesses,coh-dma,0
+Conv-2D,Small,execution time,full-coh,0.578919
+Conv-2D,Small,off-chip memory accesses,full-coh,0
+Conv-2D,Medium,execution time,non-coh-dma,1
+Conv-2D,Medium,off-chip memory accesses,non-coh-dma,1
+Conv-2D,Medium,execution time,llc-coh-dma,0.970614
+Conv-2D,Medium,off-chip memory accesses,llc-coh-dma,0.450737
+Conv-2D,Medium,execution time,coh-dma,1.067012
+Conv-2D,Medium,off-chip memory accesses,coh-dma,0.441645
+Conv-2D,Medium,execution time,full-coh,0.969196
+Conv-2D,Medium,off-chip memory accesses,full-coh,0.441645
+Conv-2D,Large,execution time,non-coh-dma,1
+Conv-2D,Large,off-chip memory accesses,non-coh-dma,1
+Conv-2D,Large,execution time,llc-coh-dma,0.99764
+Conv-2D,Large,off-chip memory accesses,llc-coh-dma,0.571228
+Conv-2D,Large,execution time,coh-dma,0.997432
+Conv-2D,Large,off-chip memory accesses,coh-dma,0.572539
+Conv-2D,Large,execution time,full-coh,0.997711
+Conv-2D,Large,off-chip memory accesses,full-coh,0.572386
+GEMM,Small,execution time,non-coh-dma,1
+GEMM,Small,off-chip memory accesses,non-coh-dma,1
+GEMM,Small,execution time,llc-coh-dma,0.883547
+GEMM,Small,off-chip memory accesses,llc-coh-dma,0.024884
+GEMM,Small,execution time,coh-dma,0.500406
+GEMM,Small,off-chip memory accesses,coh-dma,0
+GEMM,Small,execution time,full-coh,0.539169
+GEMM,Small,off-chip memory accesses,full-coh,0
+GEMM,Medium,execution time,non-coh-dma,1
+GEMM,Medium,off-chip memory accesses,non-coh-dma,1
+GEMM,Medium,execution time,llc-coh-dma,0.618874
+GEMM,Medium,off-chip memory accesses,llc-coh-dma,0.041819
+GEMM,Medium,execution time,coh-dma,0.601471
+GEMM,Medium,off-chip memory accesses,coh-dma,0
+GEMM,Medium,execution time,full-coh,1.434476
+GEMM,Medium,off-chip memory accesses,full-coh,0
+GEMM,Large,execution time,non-coh-dma,1
+GEMM,Large,off-chip memory accesses,non-coh-dma,1
+GEMM,Large,execution time,llc-coh-dma,0.949382
+GEMM,Large,off-chip memory accesses,llc-coh-dma,0.42131
+GEMM,Large,execution time,coh-dma,0.993838
+GEMM,Large,off-chip memory accesses,coh-dma,0.468028
+GEMM,Large,execution time,full-coh,3.177503
+GEMM,Large,off-chip memory accesses,full-coh,0.434612
+MLP,Small,execution time,non-coh-dma,1
+MLP,Small,off-chip memory accesses,non-coh-dma,1
+MLP,Small,execution time,llc-coh-dma,0.778407
+MLP,Small,off-chip memory accesses,llc-coh-dma,0.00097
+MLP,Small,execution time,coh-dma,0.531534
+MLP,Small,off-chip memory accesses,coh-dma,0
+MLP,Small,execution time,full-coh,0.641315
+MLP,Small,off-chip memory accesses,full-coh,0
+MLP,Medium,execution time,non-coh-dma,1
+MLP,Medium,off-chip memory accesses,non-coh-dma,1
+MLP,Medium,execution time,llc-coh-dma,0.597063
+MLP,Medium,off-chip memory accesses,llc-coh-dma,0.009704
+MLP,Medium,execution time,coh-dma,0.554488
+MLP,Medium,off-chip memory accesses,coh-dma,0.009704
+MLP,Medium,execution time,full-coh,1.690497
+MLP,Medium,off-chip memory accesses,full-coh,0.022348
+MLP,Large,execution time,non-coh-dma,1
+MLP,Large,off-chip memory accesses,non-coh-dma,1
+MLP,Large,execution time,llc-coh-dma,1.517882
+MLP,Large,off-chip memory accesses,llc-coh-dma,1.00569
+MLP,Large,execution time,coh-dma,1.513728
+MLP,Large,off-chip memory accesses,coh-dma,1.005221
+MLP,Large,execution time,full-coh,3.40716
+MLP,Large,off-chip memory accesses,full-coh,1.005368
+Autoencoder,Small,execution time,non-coh-dma,1
+Autoencoder,Small,off-chip memory accesses,non-coh-dma,1
+Autoencoder,Small,execution time,llc-coh-dma,0.5911
+Autoencoder,Small,off-chip memory accesses,llc-coh-dma,0.033905
+Autoencoder,Small,execution time,coh-dma,0.724798
+Autoencoder,Small,off-chip memory accesses,coh-dma,0.001325
+Autoencoder,Small,execution time,full-coh,0.694292
+Autoencoder,Small,off-chip memory accesses,full-coh,0.002494
+Autoencoder,Medium,execution time,non-coh-dma,1
+Autoencoder,Medium,off-chip memory accesses,non-coh-dma,1
+Autoencoder,Medium,execution time,llc-coh-dma,2.135117
+Autoencoder,Medium,off-chip memory accesses,llc-coh-dma,1.108064
+Autoencoder,Medium,execution time,coh-dma,2.064477
+Autoencoder,Medium,off-chip memory accesses,coh-dma,1.061905
+Autoencoder,Medium,execution time,full-coh,5.313879
+Autoencoder,Medium,off-chip memory accesses,full-coh,1.081794
+Autoencoder,Large,execution time,non-coh-dma,1
+Autoencoder,Large,off-chip memory accesses,non-coh-dma,1
+Autoencoder,Large,execution time,llc-coh-dma,2.97444
+Autoencoder,Large,off-chip memory accesses,llc-coh-dma,1.434172
+Autoencoder,Large,execution time,coh-dma,2.979536
+Autoencoder,Large,off-chip memory accesses,coh-dma,1.432242
+Autoencoder,Large,execution time,full-coh,7.85908
+Autoencoder,Large,off-chip memory accesses,full-coh,1.43622
+NVDLA,Small,execution time,non-coh-dma,1
+NVDLA,Small,off-chip memory accesses,non-coh-dma,1
+NVDLA,Small,execution time,llc-coh-dma,0.9978
+NVDLA,Small,off-chip memory accesses,llc-coh-dma,0.7701
+NVDLA,Small,execution time,coh-dma,0.9975
+NVDLA,Small,off-chip memory accesses,coh-dma,0.7546
+NVDLA,Small,execution time,full-coh,0.9970
+NVDLA,Small,off-chip memory accesses,full-coh,0.89494
+NVDLA,Medium,execution time,non-coh-dma,1
+NVDLA,Medium,off-chip memory accesses,non-coh-dma,1
+NVDLA,Medium,execution time,llc-coh-dma,0.9904
+NVDLA,Medium,off-chip memory accesses,llc-coh-dma,0.8594
+NVDLA,Medium,execution time,coh-dma,1.00075
+NVDLA,Medium,off-chip memory accesses,coh-dma,0.8608
+NVDLA,Medium,execution time,full-coh,1.0011
+NVDLA,Medium,off-chip memory accesses,full-coh,0.8826
+NVDLA,Large,execution time,non-coh-dma,1
+NVDLA,Large,off-chip memory accesses,non-coh-dma,1
+NVDLA,Large,execution time,llc-coh-dma,1.194
+NVDLA,Large,off-chip memory accesses,llc-coh-dma,0.7944
+NVDLA,Large,execution time,coh-dma,1.1984
+NVDLA,Large,off-chip memory accesses,coh-dma,0.7915
+NVDLA,Large,execution time,full-coh,2.5820
+NVDLA,Large,off-chip memory accesses,full-coh,0.9705

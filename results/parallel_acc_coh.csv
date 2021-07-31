@@ -1,0 +1,33 @@
+﻿xAxisTopLabel,xAxisGroupLabel,xAxisLabel,xAxisSubLabel,yAxisLabel
+1 Acc,Medium,execution time,non-coh-dma,1
+1 Acc,Medium,execution time,llc-coh-dma,0.680989895
+1 Acc,Medium,execution time,coh-dma,0.686780814
+1 Acc,Medium,execution time,full-coh,1.246387631
+1 Acc,Medium,off-chip memory accesses,non-coh-dma,1
+1 Acc,Medium,off-chip memory accesses,llc-coh-dma,0
+1 Acc,Medium,off-chip memory accesses,coh-dma,0
+1 Acc,Medium,off-chip memory accesses,full-coh,0
+4 Acc,Medium,execution time,non-coh-dma,1.242712558
+4 Acc,Medium,execution time,llc-coh-dma,1.326826019
+4 Acc,Medium,execution time,coh-dma,1.230952639
+4 Acc,Medium,execution time,full-coh,1.98198476
+4 Acc,Medium,off-chip memory accesses,non-coh-dma,0.953369258
+4 Acc,Medium,off-chip memory accesses,llc-coh-dma,0.360237926
+4 Acc,Medium,off-chip memory accesses,coh-dma,0.323557027
+4 Acc,Medium,off-chip memory accesses,full-coh,0.524654449
+8 Acc,Medium,execution time,non-coh-dma,1.854874512
+8 Acc,Medium,execution time,llc-coh-dma,3.22762246
+8 Acc,Medium,execution time,coh-dma,3.218551616
+8 Acc,Medium,execution time,full-coh,4.020610331
+8 Acc,Medium,off-chip memory accesses,non-coh-dma,0.910935762
+8 Acc,Medium,off-chip memory accesses,llc-coh-dma,0.585710715
+8 Acc,Medium,off-chip memory accesses,coh-dma,0.584792527
+8 Acc,Medium,off-chip memory accesses,full-coh,0.812746625
+12 Acc,Medium,execution time,non-coh-dma,2.404303589
+12 Acc,Medium,execution time,llc-coh-dma,5.457010307
+12 Acc,Medium,execution time,coh-dma,5.500595809
+12 Acc,Medium,execution time,full-coh,5.876065438
+12 Acc,Medium,off-chip memory accesses,non-coh-dma,0.8967904
+12 Acc,Medium,off-chip memory accesses,llc-coh-dma,0.762019219
+12 Acc,Medium,off-chip memory accesses,coh-dma,0.764131009
+12 Acc,Medium,off-chip memory accesses,full-coh,0.832705452
