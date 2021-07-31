@@ -67,3 +67,6 @@ ESPLINK_PORT ?= 46392
 
 ### Include global Makefile ###
 include $(ESP_ROOT)/utils/Makefile
+
+apps-cohmeleon: esp-config $(SOFT_BUILD)/sysroot synth_stratus-app
+	$(QUIET_CP) cp *.sh cfg_*.txt $(SOFT_BUILD)/sysroot/applications/test/ 

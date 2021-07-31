@@ -67,3 +67,11 @@ ESPLINK_PORT ?= 46392
 
 ### Include global Makefile ###
 include $(ESP_ROOT)/utils/Makefile
+
+apps-cohmeleon: esp-config $(SOFT_BUILD)/sysroot examples
+	    $(MAKE) -C $(ESP_ROOT)/accelerators/stratus_hls/spmv_stratus/sw/linux/app/host/ generate
+		$(QUIET_CP) cp *_cfg.txt *.sh $(SOFT_BUILD)/sysroot/examples/parallel_acc_coh/
+		$(QUIET_CP) cp  $(ESP_ROOT)/accelerators/stratus_hls/spmv_stratus/sw/linux/app/host/inputs/in1.data \
+			$(ESP_ROOT)/accelerators/stratus_hls/spmv_stratus/sw/linux/app/host/inputs/in2.data \
+			$(ESP_ROOT)/accelerators/stratus_hls/spmv_stratus/sw/linux/app/host/inputs/in4.data \
+			$(SOFT_BUILD)/sysroot/examples/parallel_acc_coh/

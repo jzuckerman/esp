@@ -67,3 +67,6 @@ ESPLINK_PORT ?= 46392
 
 ### Include global Makefile ###
 include $(ESP_ROOT)/utils/Makefile
+
+apps-cohmeleon: esp-config $(SOFT_BUILD)/sysroot examples
+		$(QUIET_CP) cp cfg_*.txt *.sh $(SOFT_BUILD)/sysroot/examples/comp_vision/

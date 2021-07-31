@@ -64,6 +64,8 @@ ESPLINK_PORT ?= 46392
 # MAC address for Linux if using IP address reservation (e.g. 00aabb33cc77)
 # LINUX_MAC ?=
 
-
 ### Include global Makefile ###
 include $(ESP_ROOT)/utils/Makefile
+
+apps-cohmeleon: esp-config $(SOFT_BUILD)/sysroot synth_stratus-app
+	$(QUIET_CP) cp *.sh cfg_*.txt $(SOFT_BUILD)/sysroot/applications/test/
