@@ -16,5 +16,5 @@ rm *.csv
 ./synth_stratus.exe cfg_synth1_1.txt full cfg 0 0 0
 ./synth_stratus.exe cfg_synth1_1.txt rand cfg 0 0 0
 ./synth_stratus.exe cfg_synth1_1.txt design cfg 0 0 0
-./synth_stratus.exe cfg_synth1_1.txt manual cfg 0 0 0
+./synth_stratus.exe cfg_synth1_1.txt auto cfg 0 0 0
 ./synth_stratus.exe cfg_synth1_1.txt learn cfg 0 0 0

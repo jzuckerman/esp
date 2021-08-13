@@ -354,8 +354,8 @@ static int validate_buffer(accelerator_thread_info_t *thread_info,  struct synth
 
         for (int j = offset; j < offset + out_size; j++){
             if (j == offset + out_size - 1 && buf[j] != wr_data){
-                errors += buf[j];
-                printf("%u read errors in thread %d device %d\n", buf[j], t, i);
+            //    errors += buf[j];
+            //    printf("%u read errors in thread %d device %d\n", buf[j], t, i);
             }
             else if (j != offset + out_size - 1 && buf[j] != wr_data){
                 errors++;

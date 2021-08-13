@@ -4,8 +4,8 @@ import math
 import sys
 
 #change these
-nacc = 12 
-nthreads = [1, 2, 3, 4, 6, 8, 10, 12] 
+nacc = 12
+nthreads = [1, 2, 3, 4, 6, 8, 10, 12]
 phases = 40
 
 x = open("../../../hw/synth.xml", "r")
@@ -20,7 +20,7 @@ x.close()
 max_words = pt_size / 4
 sizes = ["K1", "K2", "K4", "K8", "K16", "K32", "K64", "K128", "K256", "K512", "M1", "M2", "M4"]
 patterns = ["STREAMING", "STRIDED", "IRREGULAR"]
-burst_lens = [4, 8, 16, 32, 64, 128]
+burst_lens = [4, 8, 16, 32, 64]
 cb_factors = [1, 2, 4] 
 reuse_factors = [1, 2, 4]
 ld_st_ratios = [1, 2, 4]
