@@ -13,7 +13,7 @@ TECHLIB  = virtexu
 BOARD    = profpga-xcvu440
 DESIGN   = esp-$(BOARD)
 # LINUX_SMP = 1
-LEON3_BASE_FREQ_MHZ ?= 50
+LEON3_BASE_FREQ_MHZ ?= 78
 LEON3_STACK ?= 0x4ffffff0
 
 ESP_DEFCONFIG = profpga-xcvu440-12acc_defconfig
